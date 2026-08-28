@@ -86,7 +86,7 @@ export const services: Service[] = [
   },
   {
     id: 'svc-property-services',
-    name: 'Property Services',
+    name: 'Property Registration',
     department: 'Municipal Corporation',
     category: 'Municipal',
     processingTime: '10–12 working days',

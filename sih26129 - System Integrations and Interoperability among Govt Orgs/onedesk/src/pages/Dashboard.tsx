@@ -1,4 +1,4 @@
-import { ArrowRight, Bell, Building2, CheckCircle2, Clock, FileText, ShieldCheck } from 'lucide-react'
+import { ArrowRight, Bell, Briefcase, Building2, CheckCircle2, Clock, FileText, HandHeart, Home as HomeIcon, MessageSquareWarning, ShieldCheck } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { StatCard } from '@/components/shared/StatCard'
 import { StatusBadge } from '@/components/shared/StatusBadge'
@@ -10,6 +10,14 @@ import { useConsents } from '@/context/ConsentsContext'
 import { useNotifications } from '@/context/NotificationsContext'
 import { citizenFacingDepartments as departments } from '@/data/departments'
 import { cn, formatDate, formatDateTime } from '@/lib/utils'
+
+const quickServices = [
+  { label: 'Business License', to: '/services/svc-business-license', icon: Briefcase },
+  { label: 'Property Registration', to: '/services/svc-property-services', icon: HomeIcon },
+  { label: 'Scholarship', to: '/services/svc-scholarship', icon: FileText },
+  { label: 'Welfare Benefits', to: '/services/svc-welfare-schemes', icon: HandHeart },
+  { label: 'Grievance', to: '/grievances', icon: MessageSquareWarning },
+]
 
 export default function Dashboard() {
   const { consents } = useConsents()
@@ -34,11 +42,27 @@ export default function Dashboard() {
           className="pointer-events-none absolute inset-y-0 right-0 hidden h-full w-auto max-w-[55%] object-contain object-right opacity-80 sm:block"
         />
         <div className="relative max-w-lg px-6 py-8">
-          <h1 className="text-xl font-semibold text-gray-900">Welcome to the Unified Government Portal</h1>
+          <h1 className="text-xl font-semibold text-gray-900">One place for your government services</h1>
           <p className="mt-1.5 text-sm text-gray-600">
-            Access multiple departments, track applications, manage consents and avail services seamlessly.
+            OneDesk connects the departments behind the scenes — you sign in once, apply once, and track
+            everything from a single, unified view.
           </p>
         </div>
+      </div>
+
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
+        {quickServices.map((s) => (
+          <Link
+            key={s.label}
+            to={s.to}
+            className="flex flex-col items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-4 text-center transition-shadow hover:shadow-sm"
+          >
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+              <s.icon className="h-4 w-4" />
+            </div>
+            <span className="text-xs font-medium text-gray-700">{s.label}</span>
+          </Link>
+        ))}
       </div>
 
       {flagshipApp && (
@@ -77,7 +101,7 @@ export default function Dashboard() {
             </div>
 
             <p className="mt-3 flex items-center gap-1 text-xs font-medium text-brand-600">
-              View full cross-department status <ArrowRight className="h-3.5 w-3.5" />
+              Track your application <ArrowRight className="h-3.5 w-3.5" />
             </p>
           </Card>
         </Link>
