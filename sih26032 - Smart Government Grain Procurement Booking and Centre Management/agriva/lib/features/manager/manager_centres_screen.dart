@@ -57,9 +57,9 @@ class ManagerCentresScreen extends ConsumerWidget {
                 )
                 .length;
             final avgWait =
-                ManagerKpis.avgWaitByCentre[centre.name.contains('ABC')
-                    ? 'ABC Centre'
-                    : 'XYZ Centre'] ??
+                ManagerKpis.avgWaitByCentre[centre.name.contains('Nagpur')
+                    ? 'Nagpur Centre'
+                    : 'Akola Centre'] ??
                 0;
 
             return Container(

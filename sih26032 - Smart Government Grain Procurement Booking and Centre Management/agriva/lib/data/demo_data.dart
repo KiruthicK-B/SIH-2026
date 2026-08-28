@@ -338,7 +338,7 @@ AgrivaAppState buildInitialDemoState(DateTime now) {
       id: 'ntf-ravi-past-complete',
       userId: raviFarmerId,
       title: 'Procurement Complete',
-      message: '45.0 Q accepted at ABC Government Procurement Centre.',
+      message: '45.0 Q accepted at Nagpur Government Procurement Centre.',
       timestamp: raviPastWeighment.timestamp,
       read: true,
       kind: NotificationKind.procurementComplete,

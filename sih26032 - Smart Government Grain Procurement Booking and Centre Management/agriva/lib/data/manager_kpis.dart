@@ -29,5 +29,5 @@ class ManagerKpis {
     'Sun',
   ];
 
-  static const avgWaitByCentre = {'ABC Centre': 42, 'XYZ Centre': 98};
+  static const avgWaitByCentre = {'Nagpur Centre': 42, 'Akola Centre': 98};
 }

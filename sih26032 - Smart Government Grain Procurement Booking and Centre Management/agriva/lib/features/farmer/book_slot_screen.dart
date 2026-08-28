@@ -220,6 +220,7 @@ class _StepIndicator extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           for (var i = 0; i < labels.length; i++) ...[
             Column(
@@ -252,13 +253,14 @@ class _StepIndicator extends StatelessWidget {
             ),
             if (i < labels.length - 1)
               Expanded(
-                child: Container(
-                  height: 2,
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 4,
-                    vertical: -12,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 12, left: 4, right: 4),
+                  child: Container(
+                    height: 2,
+                    color: i < step
+                        ? AgrivaColors.primary
+                        : AgrivaColors.border,
                   ),
-                  color: i < step ? AgrivaColors.primary : AgrivaColors.border,
                 ),
               ),
           ],

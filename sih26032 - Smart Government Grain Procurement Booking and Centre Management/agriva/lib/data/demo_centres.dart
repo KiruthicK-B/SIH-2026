@@ -7,7 +7,7 @@ const centreBId = 'centre-xyz';
 List<ProcurementCentre> buildDemoCentres() => [
   const ProcurementCentre(
     id: centreAId,
-    name: 'ABC Government Procurement Centre',
+    name: 'Nagpur Government Procurement Centre',
     status: CentreStatus.open,
     dailyProcessingCapacityQ: 1000,
     storageCapacityQ: 1000,
@@ -19,7 +19,7 @@ List<ProcurementCentre> buildDemoCentres() => [
   ),
   const ProcurementCentre(
     id: centreBId,
-    name: 'XYZ Government Procurement Centre',
+    name: 'Akola Government Procurement Centre',
     status: CentreStatus.delayed,
     dailyProcessingCapacityQ: 800,
     storageCapacityQ: 900,

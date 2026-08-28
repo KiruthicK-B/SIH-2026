@@ -12,6 +12,14 @@ import '../../widgets/app_states.dart';
 import '../../widgets/max_width_body.dart';
 import '../../widgets/status_badge.dart';
 
+const _upcomingCardStatuses = [
+  BookingStatus.confirmed,
+  BookingStatus.checkedIn,
+  BookingStatus.inQueue,
+  BookingStatus.processing,
+  BookingStatus.rescheduleRequired,
+];
+
 class FarmerHomeScreen extends ConsumerWidget {
   final VoidCallback onGoToQueue;
   final VoidCallback onGoToBookings;
@@ -32,7 +40,7 @@ class FarmerHomeScreen extends ConsumerWidget {
         .toList();
     final upcoming =
         myBookings
-            .where((b) => b.isActive && b.status != BookingStatus.waitlisted)
+            .where((b) => _upcomingCardStatuses.contains(b.status))
             .toList()
           ..sort((a, b) {
             final sa = appState.slots.firstWhere((s) => s.id == a.slotId).start;
@@ -198,9 +206,31 @@ class _UpcomingSlotCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            centre.name,
-            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  centre.name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14.5,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              StatusBadge(
+                label: booking.status.label,
+                tone: switch (booking.status) {
+                  BookingStatus.confirmed || BookingStatus.checkedIn =>
+                    StatusTone.success,
+                  BookingStatus.inQueue || BookingStatus.processing =>
+                    StatusTone.warning,
+                  BookingStatus.rescheduleRequired => StatusTone.warning,
+                  _ => StatusTone.inactive,
+                },
+              ),
+            ],
           ),
           const SizedBox(height: 4),
           Text(
