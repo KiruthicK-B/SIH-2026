@@ -1,0 +1,28 @@
+# Claude Code local state — never commit
+.claude/
+CLAUDE.md
+**/CLAUDE.md
+
+# OS
+.DS_Store
+
+# Node / Vite (onedesk)
+node_modules/
+dist/
+*.log
+
+# Flutter (agriva)
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.pub-cache/
+**/.pub/
+**/build/
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/android/.gradle/
+**/android/local.properties
+**/*.iml
+**/.idea/
