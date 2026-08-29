@@ -18,6 +18,7 @@ import {
   Send,
 } from 'lucide-react'
 import { useOrcaChatContext } from '@/context/OrcaChatContext'
+import { OrcaMark } from './ui/OrcaMark'
 
 const NAV = [
   { label: 'Dashboard', to: '/', icon: LayoutDashboard },
@@ -51,7 +52,9 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="flex h-screen bg-navy-950">
       <aside className="flex w-60 shrink-0 flex-col border-r border-navy-700 bg-navy-900">
         <div className="flex items-center gap-2 border-b border-navy-700 px-4 py-4">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-500/15 text-lg">🐋</div>
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-500/15 p-1.5">
+            <OrcaMark className="h-full w-full" />
+          </div>
           <div>
             <p className="text-sm font-bold leading-tight text-white">ORCA</p>
             <p className="text-[9px] leading-tight text-slate-500">Marine Intelligence</p>

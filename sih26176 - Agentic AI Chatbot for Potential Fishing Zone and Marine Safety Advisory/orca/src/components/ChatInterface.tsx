@@ -5,6 +5,7 @@ import { useOrcaChatContext } from '@/context/OrcaChatContext'
 import { AlertsBanner } from './AlertsBanner'
 import { ReasoningPanel } from './ReasoningPanel'
 import { PFZBandBadge, SafetyBadge } from './ui/Badge'
+import { OrcaMark } from './ui/OrcaMark'
 import { formatTime, cn } from '@/lib/utils'
 
 const SUGGESTIONS = [
@@ -32,7 +33,9 @@ export function ChatInterface({ compact = false }: { compact?: boolean }) {
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between border-b border-navy-600 px-4 py-3">
         <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-cyan-500/15 text-cyan-400">🐋</div>
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-cyan-500/15 p-1.5">
+            <OrcaMark className="h-full w-full" />
+          </div>
           <p className="text-xs font-bold uppercase tracking-wide text-slate-300">Chat with ORCA</p>
         </div>
         <button onClick={clearChat} className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-slate-200">
