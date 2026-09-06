@@ -3,10 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme.dart';
-import '../../models/enums.dart';
-import '../../providers/app_state_provider.dart';
+import '../../state/booking_controller.dart';
+import '../../state/procurement_controller.dart';
 import '../../widgets/agriva_app_bar.dart';
 import '../../widgets/app_buttons.dart';
+import '../../widgets/app_states.dart';
 import '../../widgets/app_text_field.dart';
 import '../../widgets/max_width_body.dart';
 
@@ -30,124 +31,130 @@ class QualityInspectionScreen extends ConsumerStatefulWidget {
 class _QualityInspectionScreenState
     extends ConsumerState<QualityInspectionScreen> {
   final _moistureController = TextEditingController(text: '17.5');
-  final _remarksController = TextEditingController();
-  InspectionStatus _result = InspectionStatus.passed;
+  bool _passed = true;
   String? _reason;
   bool _submitting = false;
 
   @override
   Widget build(BuildContext context) {
-    final appState = ref.watch(appStateProvider);
-    final booking = appState.bookings.firstWhere(
-      (b) => b.id == widget.bookingId,
-    );
-    final farmer = appState.farmers.firstWhere((f) => f.id == booking.farmerId);
+    final bookingAsync = ref.watch(bookingByIdProvider(widget.bookingId));
 
     return Scaffold(
       appBar: const AgrivaAppBar(title: 'Quality Inspection'),
       body: MaxWidthBody(
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            _Row('Booking', booking.id),
-            _Row('Token', booking.token),
-            _Row('Farmer', farmer.name),
-            _Row(
-              'Expected Quantity',
-              '${booking.expectedQuantityQ.toStringAsFixed(0)} Q',
-            ),
-            const SizedBox(height: 16),
-            AppTextField(
-              label: 'Moisture (%)',
-              controller: _moistureController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-            ),
-            const SizedBox(height: 18),
-            const Text(
-              'Result',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-            ),
-            RadioListTile<InspectionStatus>(
-              value: InspectionStatus.passed,
-              groupValue: _result,
-              onChanged: (v) => setState(() => _result = v!),
-              title: const Text('Passed'),
-              contentPadding: EdgeInsets.zero,
-              activeColor: AgrivaColors.primary,
-            ),
-            RadioListTile<InspectionStatus>(
-              value: InspectionStatus.notAccepted,
-              groupValue: _result,
-              onChanged: (v) => setState(() => _result = v!),
-              title: const Text('Not Accepted'),
-              contentPadding: EdgeInsets.zero,
-              activeColor: AgrivaColors.primary,
-            ),
-            RadioListTile<InspectionStatus>(
-              value: InspectionStatus.furtherInspection,
-              groupValue: _result,
-              onChanged: (v) => setState(() => _result = v!),
-              title: const Text('Further Inspection'),
-              contentPadding: EdgeInsets.zero,
-              activeColor: AgrivaColors.primary,
-            ),
-            if (_result == InspectionStatus.notAccepted) ...[
-              const SizedBox(height: 8),
-              const Text(
-                'Reason',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 6),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _reasons
-                    .map(
-                      (r) => ChoiceChip(
-                        label: Text(r),
-                        selected: _reason == r,
-                        onSelected: (_) => setState(() => _reason = r),
+        child: bookingAsync.when(
+          loading: () => const LoadingState(),
+          error: (e, st) => const ErrorState(),
+          data: (booking) {
+            if (booking == null) {
+              return const ErrorState(message: 'Booking not found.');
+            }
+            final farmerAsync = ref.watch(farmerByIdProvider(booking.farmerId));
+            final farmer = farmerAsync.value;
+
+            return ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                _Row('Booking', booking.id),
+                _Row('Token', booking.token),
+                _Row('Farmer', farmer?.name ?? '—'),
+                _Row(
+                  'Expected Quantity',
+                  '${booking.expectedQuantityQ.toStringAsFixed(0)} Q',
+                ),
+                const SizedBox(height: 16),
+                AppTextField(
+                  label: 'Moisture (%)',
+                  controller: _moistureController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                const Text(
+                  'Result',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+                RadioGroup<bool>(
+                  groupValue: _passed,
+                  onChanged: (v) => setState(() => _passed = v!),
+                  child: Column(
+                    children: [
+                      RadioListTile<bool>(
+                        value: true,
+                        title: const Text('Passed'),
+                        contentPadding: EdgeInsets.zero,
+                        activeColor: AgrivaColors.primary,
                       ),
-                    )
-                    .toList(),
-              ),
-            ],
-            const SizedBox(height: 16),
-            AppTextField(
-              label: 'Remarks (Optional)',
-              controller: _remarksController,
-            ),
-            const SizedBox(height: 24),
-            PrimaryButton(
-              label: 'Submit',
-              loading: _submitting,
-              onPressed: () async {
-                setState(() => _submitting = true);
-                final result = ref
-                    .read(appStateProvider.notifier)
-                    .submitInspection(
-                      bookingId: widget.bookingId,
-                      moisturePercent:
-                          double.tryParse(_moistureController.text) ?? 0,
-                      result: _result,
-                      reason: _reason,
-                      remarks: _remarksController.text.isEmpty
-                          ? null
-                          : _remarksController.text,
-                      inspector: 'Suresh Babu',
-                    );
-                setState(() => _submitting = false);
-                if (context.mounted) {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text(result.message)));
-                  if (result.success) context.pop();
-                }
-              },
-            ),
-          ],
+                      RadioListTile<bool>(
+                        value: false,
+                        title: const Text('Not Accepted'),
+                        contentPadding: EdgeInsets.zero,
+                        activeColor: AgrivaColors.primary,
+                      ),
+                    ],
+                  ),
+                ),
+                if (!_passed) ...[
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Reason (required)',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _reasons
+                        .map(
+                          (r) => ChoiceChip(
+                            label: Text(r),
+                            selected: _reason == r,
+                            onSelected: (_) => setState(() => _reason = r),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ],
+                const SizedBox(height: 24),
+                PrimaryButton(
+                  label: 'Submit',
+                  loading: _submitting,
+                  onPressed: (!_passed && _reason == null)
+                      ? null
+                      : () async {
+                          setState(() => _submitting = true);
+                          final result = await ref
+                              .read(procurementControllerProvider)
+                              .submitQualityCheck(
+                                bookingId: widget.bookingId,
+                                moisturePercent:
+                                    double.tryParse(_moistureController.text) ??
+                                    0,
+                                passed: _passed,
+                                rejectionReason: _reason,
+                                inspector: 'Suresh Babu',
+                              );
+                          setState(() => _submitting = false);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(result.message)),
+                            );
+                            if (result.success) {
+                              if (_passed) {
+                                context.pushReplacement(
+                                  '/operator/weighment/${widget.bookingId}',
+                                );
+                              } else {
+                                context.pop();
+                              }
+                            }
+                          }
+                        },
+                ),
+              ],
+            );
+          },
         ),
       ),
     );

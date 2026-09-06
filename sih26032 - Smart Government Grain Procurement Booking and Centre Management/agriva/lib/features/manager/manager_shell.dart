@@ -4,6 +4,7 @@ import '../../widgets/adaptive_shell.dart';
 import 'manager_dashboard_screen.dart';
 import 'manager_centres_screen.dart';
 import 'manager_analytics_screen.dart';
+import 'manager_more_screen.dart';
 
 class ManagerShell extends StatefulWidget {
   const ManagerShell({super.key});
@@ -31,12 +32,18 @@ class _ManagerShellState extends State<ManagerShell> {
       activeIcon: Icons.insights,
       label: 'Analytics',
     ),
+    ShellDestination(
+      icon: Icons.account_circle_outlined,
+      activeIcon: Icons.account_circle,
+      label: 'Account',
+    ),
   ];
 
   static const _pages = [
     ManagerDashboardScreen(),
     ManagerCentresScreen(),
     ManagerAnalyticsScreen(),
+    ManagerMoreScreen(),
   ];
 
   @override

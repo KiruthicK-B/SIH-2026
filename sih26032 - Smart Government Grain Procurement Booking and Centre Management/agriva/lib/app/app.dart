@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../models/enums.dart';
-import '../providers/app_state_provider.dart';
+import '../l10n/gen/app_localizations.dart';
+import '../state/locale_controller.dart';
 import 'router.dart';
 import 'theme.dart';
 
@@ -12,15 +13,23 @@ class AgrivaApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
-    final role = ref.watch(appStateProvider.select((s) => s.currentUser?.role));
-    final theme = (role == UserRole.operator || role == UserRole.admin)
-        ? AgrivaTheme.operatorBlue
-        : AgrivaTheme.light;
+    final locale = ref.watch(localeControllerProvider);
+    final themeMode = ref.watch(themeModeControllerProvider);
 
     return MaterialApp.router(
-      title: 'AGRIVA',
+      title: 'Agriva',
       debugShowCheckedModeBanner: false,
-      theme: theme,
+      theme: AgrivaTheme.light,
+      darkTheme: AgrivaTheme.dark,
+      themeMode: themeMode,
+      locale: locale,
+      supportedLocales: supportedAgrivaLocales,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       routerConfig: router,
     );
   }

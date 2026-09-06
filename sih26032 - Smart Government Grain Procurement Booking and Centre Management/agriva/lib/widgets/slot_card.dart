@@ -40,69 +40,72 @@ class SlotCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: borderColor, width: selected ? 1.5 : 1),
           ),
-          child: Row(
-            children: [
-              Radio<bool>(
-                value: true,
-                groupValue: selected ? true : null,
-                onChanged: feasible ? (_) => onTap?.call() : null,
-                activeColor: AgrivaColors.primary,
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      timeLabel,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14.5,
+          child: RadioGroup<bool>(
+            groupValue: selected ? true : null,
+            onChanged: (_) {
+              if (feasible) {
+                onTap?.call();
+              }
+            },
+            child: Row(
+              children: [
+                Radio<bool>(value: true, activeColor: AgrivaColors.primary),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        timeLabel,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14.5,
+                        ),
                       ),
+                      const SizedBox(height: 3),
+                      Text(
+                        feasible
+                            ? '${recommendation.remainingFarmerSlots}/${slot.maxFarmers} available · ${recommendation.remainingQuantityQ.toStringAsFixed(0)} Q remaining'
+                            : recommendation.reason,
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          color: feasible
+                              ? AgrivaColors.textSecondary
+                              : AgrivaColors.error,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (recommendation.isRecommended)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
                     ),
-                    const SizedBox(height: 3),
-                    Text(
-                      feasible
-                          ? '${recommendation.remainingFarmerSlots}/${slot.maxFarmers} available · ${recommendation.remainingQuantityQ.toStringAsFixed(0)} Q remaining'
-                          : recommendation.reason,
+                    decoration: BoxDecoration(
+                      color: AgrivaColors.successBg,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Text(
+                      'RECOMMENDED',
                       style: TextStyle(
-                        fontSize: 12.5,
-                        color: feasible
-                            ? AgrivaColors.textSecondary
-                            : AgrivaColors.error,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: AgrivaColors.success,
                       ),
                     ),
-                  ],
-                ),
-              ),
-              if (recommendation.isRecommended)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AgrivaColors.successBg,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: const Text(
-                    'RECOMMENDED',
+                  )
+                else if (!feasible)
+                  const Text(
+                    'Unavailable',
                     style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: AgrivaColors.success,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AgrivaColors.error,
                     ),
                   ),
-                )
-              else if (!feasible)
-                const Text(
-                  'Unavailable',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: AgrivaColors.error,
-                  ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

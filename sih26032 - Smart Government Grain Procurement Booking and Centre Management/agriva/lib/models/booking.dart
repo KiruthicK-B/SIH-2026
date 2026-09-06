@@ -12,6 +12,7 @@ class Booking {
   final DateTime? checkedInAt;
   final DateTime? cancelledAt;
   final DateTime? noShowAt;
+  final String? cancelReason;
 
   const Booking({
     required this.id,
@@ -25,6 +26,7 @@ class Booking {
     this.checkedInAt,
     this.cancelledAt,
     this.noShowAt,
+    this.cancelReason,
   });
 
   Booking copyWith({
@@ -33,6 +35,7 @@ class Booking {
     DateTime? cancelledAt,
     DateTime? noShowAt,
     String? slotId,
+    String? cancelReason,
   }) {
     return Booking(
       id: id,
@@ -46,13 +49,20 @@ class Booking {
       checkedInAt: checkedInAt ?? this.checkedInAt,
       cancelledAt: cancelledAt ?? this.cancelledAt,
       noShowAt: noShowAt ?? this.noShowAt,
+      cancelReason: cancelReason ?? this.cancelReason,
     );
   }
 
-  bool get isActive => ![
+  bool get isActive =>
+      ![BookingStatus.cancelled, BookingStatus.noShow].contains(status);
+
+  bool get isTerminal => [
+    BookingStatus.accepted,
+    BookingStatus.partiallyAccepted,
+    BookingStatus.rejected,
+    BookingStatus.paymentCompleted,
     BookingStatus.cancelled,
     BookingStatus.noShow,
-    BookingStatus.expired,
   ].contains(status);
 
   factory Booking.fromJson(Map<String, dynamic> json) => Booking(
@@ -73,6 +83,7 @@ class Booking {
     noShowAt: json['noShowAt'] != null
         ? DateTime.parse(json['noShowAt'] as String)
         : null,
+    cancelReason: json['cancelReason'] as String?,
   );
 
   Map<String, dynamic> toJson() => {
@@ -87,5 +98,6 @@ class Booking {
     'checkedInAt': checkedInAt?.toIso8601String(),
     'cancelledAt': cancelledAt?.toIso8601String(),
     'noShowAt': noShowAt?.toIso8601String(),
+    'cancelReason': cancelReason,
   };
 }

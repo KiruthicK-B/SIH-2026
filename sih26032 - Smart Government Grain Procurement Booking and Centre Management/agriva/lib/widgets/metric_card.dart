@@ -18,42 +18,55 @@ class MetricCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = accent ?? AgrivaColors.primary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = accent ?? (isDark ? AgrivaColors.primaryAccentDark : AgrivaColors.primary);
+    final cardColor = isDark ? AgrivaColors.surfaceDark : AgrivaColors.surface;
+    final borderColor = isDark ? AgrivaColors.borderDark : AgrivaColors.border;
+    final textColor = isDark ? AgrivaColors.textPrimaryDark : AgrivaColors.textPrimary;
+    final labelColor = isDark ? AgrivaColors.textSecondaryDark : AgrivaColors.textSecondary;
+
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: AgrivaColors.surface,
+        color: cardColor,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AgrivaColors.border),
+        border: Border.all(color: borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+              color: color.withValues(alpha: isDark ? 0.2 : 0.1),
+              borderRadius: BorderRadius.circular(6),
             ),
-            child: Icon(icon, color: color, size: 18),
+            child: Icon(icon, color: color, size: 16),
           ),
-          const SizedBox(height: 10),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 19,
-              fontWeight: FontWeight.w700,
-              color: AgrivaColors.textPrimary,
+          const SizedBox(height: 8),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: textColor,
+              ),
             ),
           ),
           const SizedBox(height: 2),
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 12,
-              color: AgrivaColors.textSecondary,
+            style: TextStyle(
+              fontSize: 11,
+              color: labelColor,
+              fontWeight: FontWeight.w500,
             ),
-            maxLines: 2,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

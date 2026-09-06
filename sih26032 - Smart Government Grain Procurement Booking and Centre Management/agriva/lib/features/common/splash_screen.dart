@@ -1,75 +1,135 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme.dart';
-import '../../providers/app_state_provider.dart';
+import '../../models/enums.dart';
+import '../../state/auth_controller.dart';
+import '../../widgets/max_width_body.dart';
 
-class SplashScreen extends ConsumerWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final ready = ref.watch(appReadyProvider);
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
+}
 
-    ref.listen(appReadyProvider, (prev, next) {
-      if (next.hasValue) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (context.mounted) context.go('/role-select');
-        });
+class _SplashScreenState extends ConsumerState<SplashScreen> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer(const Duration(milliseconds: 1400), () {
+      if (!mounted) return;
+      final user = ref.read(authControllerProvider);
+      if (user != null) {
+        final target = switch (user.role) {
+          UserRole.farmer => '/farmer',
+          UserRole.centreOperator => '/operator',
+          UserRole.districtAdmin => '/district-admin',
+          UserRole.stateAdmin => '/state-admin',
+        };
+        context.go(target);
+      } else {
+        context.go('/login');
       }
     });
+  }
 
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AgrivaColors.primary,
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'AGRIVA',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 34,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 1,
-              ),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'Smart Government Grain Procurement',
-              style: TextStyle(color: Colors.white70, fontSize: 13),
-            ),
-            const SizedBox(height: 32),
-            ready.when(
-              data: (_) => const SizedBox(
-                height: 24,
-                width: 24,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2,
-                ),
-              ),
-              loading: () => const SizedBox(
-                height: 24,
-                width: 24,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2,
-                ),
-              ),
-              error: (e, st) => Column(
-                children: [
-                  const Icon(Icons.error_outline, color: Colors.white),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Unable to restore saved demo state.',
-                    style: TextStyle(color: Colors.white),
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: MaxWidthBody(
+          maxWidth: 480,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+            child: Column(
+              children: [
+                const Spacer(flex: 1),
+
+                // Official Government Header Tag
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: AgrivaColors.primaryLight50,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: AgrivaColors.border),
                   ),
-                ],
-              ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Text('🇮🇳', style: TextStyle(fontSize: 16)),
+                      SizedBox(width: 8),
+                      Text(
+                        'GOVERNMENT OF INDIA • DoCA',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.8,
+                          color: AgrivaColors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 36),
+
+                // Brand Mark (Official Emblem Logo)
+                Image.asset(
+                  'assets/images/app_icon.png',
+                  height: 120,
+                  fit: BoxFit.contain,
+                ),
+
+                const Spacer(flex: 2),
+
+                // Animated Loader & Secure digital infra note
+                Column(
+                  children: [
+                    const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: AgrivaColors.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: const [
+                        Icon(Icons.lock_outline_rounded, size: 14, color: AgrivaColors.textMuted),
+                        SizedBox(width: 6),
+                        Text(
+                          'Secured by NIC Digital Infrastructure',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 11.5, color: AgrivaColors.textMuted),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Govt. of Tamil Nadu • TNSCSC Smart APMC',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 11, color: AgrivaColors.textMuted, fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

@@ -4,7 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../models/booking.dart';
 import '../../models/enums.dart';
-import '../../providers/app_state_provider.dart';
+import '../../state/auth_controller.dart';
+import '../../state/booking_controller.dart';
 import '../../widgets/agriva_app_bar.dart';
 import '../../widgets/app_states.dart';
 import '../../widgets/booking_card.dart';
@@ -19,70 +20,55 @@ class MyBookingsScreen extends ConsumerStatefulWidget {
 
 class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen>
     with SingleTickerProviderStateMixin {
-  late final TabController _tabController = TabController(
-    length: 2,
-    vsync: this,
-  );
+  late final TabController _tabController = TabController(length: 2, vsync: this);
 
   static const _upcomingStatuses = [
-    BookingStatus.confirmed,
+    BookingStatus.booked,
     BookingStatus.checkedIn,
     BookingStatus.inQueue,
-    BookingStatus.processing,
+    BookingStatus.underQualityCheck,
     BookingStatus.rescheduleRequired,
     BookingStatus.waitlisted,
   ];
 
   @override
   Widget build(BuildContext context) {
-    final appState = ref.watch(appStateProvider);
-    final farmerId = appState.currentUser!.id;
-    final myBookings =
-        appState.bookings.where((b) => b.farmerId == farmerId).toList()
-          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-
-    final upcoming = myBookings
-        .where((b) => _upcomingStatuses.contains(b.status))
-        .toList();
-    final past = myBookings
-        .where((b) => !_upcomingStatuses.contains(b.status))
-        .toList();
+    final user = ref.watch(authControllerProvider);
+    if (user == null) return const SizedBox.shrink();
+    final bookingsAsync = ref.watch(bookingsForFarmerProvider(user.id));
 
     return Scaffold(
       appBar: AgrivaAppBar(
         title: 'My Bookings',
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: TabBar(
-              controller: _tabController,
-              tabs: const [
-                Tab(text: 'Upcoming'),
-                Tab(text: 'Past'),
-              ],
-              indicatorColor: Colors.white,
-              labelStyle: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [Tab(text: 'Upcoming'), Tab(text: 'Past')],
+          indicatorColor: Colors.white,
+          indicatorWeight: 3,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          labelStyle: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
+        ),
       ),
       body: MaxWidthBody(
-        child: TabBarView(
-          controller: _tabController,
-          children: [
-            _BookingList(
-              bookings: upcoming,
-              emptyMessage:
-                  'No upcoming bookings.\nBook a slot to get started.',
-            ),
-            _BookingList(
-              bookings: past,
-              emptyMessage: 'No booking history yet.',
-            ),
-          ],
+        child: bookingsAsync.when(
+          loading: () => const LoadingState(),
+          error: (e, st) => const ErrorState(),
+          data: (all) {
+            final sorted = [...all]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+            final upcoming = sorted.where((b) => _upcomingStatuses.contains(b.status)).toList();
+            final past = sorted.where((b) => !_upcomingStatuses.contains(b.status)).toList();
+            return TabBarView(
+              controller: _tabController,
+              children: [
+                _BookingList(
+                  bookings: upcoming,
+                  emptyMessage: 'No upcoming bookings.\nBook a slot to get started.',
+                ),
+                _BookingList(bookings: past, emptyMessage: 'No booking history yet.'),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -103,30 +89,32 @@ class _BookingList extends ConsumerWidget {
         message: emptyMessage,
       );
     }
-    final appState = ref.watch(appStateProvider);
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: bookings.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      separatorBuilder: (_, _) => const SizedBox(height: 10),
       itemBuilder: (context, i) {
         final booking = bookings[i];
-        final slot = appState.slots.firstWhere((s) => s.id == booking.slotId);
-        final centre = appState.centres.firstWhere(
-          (c) => c.id == booking.centreId,
-        );
+        final slotAsync = ref.watch(slotByIdProvider(booking.slotId));
+        final centreAsync = ref.watch(centreByIdProvider(booking.centreId));
+        final slot = slotAsync.value;
+        final centre = centreAsync.value;
+        if (slot == null || centre == null) {
+          return const SizedBox(height: 90, child: LoadingState());
+        }
         return BookingCard(
           booking: booking,
           slot: slot,
           centre: centre,
           onTap: () => context.push('/farmer/booking/${booking.id}'),
           onReschedule: () => context.push('/farmer/reschedule/${booking.id}'),
-          onCancel: () {
-            final result = ref
-                .read(appStateProvider.notifier)
+          onCancel: () async {
+            final result = await ref
+                .read(bookingControllerProvider)
                 .cancelBooking(booking.id);
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(result.message)));
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message)));
+            }
           },
         );
       },

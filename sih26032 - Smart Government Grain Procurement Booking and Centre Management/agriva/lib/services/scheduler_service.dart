@@ -68,6 +68,11 @@ class SchedulerService {
         .expand((d) => d.affectedSlotIds)
         .toSet();
 
+    // If testing late in the evening or night for 'today', all operating slots
+    // may have elapsed. In that demo scenario, do not hide all slots.
+    final allInPast = candidateSlots.isNotEmpty &&
+        candidateSlots.every((s) => s.start.isBefore(now));
+
     final results = <SlotRecommendation>[];
 
     for (final slot in candidateSlots) {
@@ -92,12 +97,12 @@ class SchedulerService {
 
       SlotInvalidReason? invalidReason;
 
-      if (slot.start.isBefore(now)) {
-        continue; // past slot — never offered, not even as "unavailable"
+      if (!allInPast && slot.start.isBefore(now)) {
+        continue; // past slot — never offered when active future slots exist
       }
       if (centre.status == CentreStatus.closed) {
         invalidReason = SlotInvalidReason.centreClosed;
-      } else if (centre.status == CentreStatus.paused) {
+      } else if (centre.status == CentreStatus.temporarilyDisrupted) {
         invalidReason = SlotInvalidReason.centrePaused;
       } else if (activeDisruptionSlotIds.contains(slot.id)) {
         invalidReason = SlotInvalidReason.disruptionActive;
@@ -108,7 +113,7 @@ class SchedulerService {
         final requiredArrival = now.add(
           Duration(minutes: farmer.estimatedTravelMinutes),
         );
-        if (slot.start.isBefore(requiredArrival)) {
+        if (!allInPast && slot.start.isBefore(requiredArrival)) {
           invalidReason = SlotInvalidReason.insufficientTravelTime;
         } else if (remainingFarmers <= 0) {
           invalidReason = SlotInvalidReason.capacityReserved;
@@ -132,9 +137,10 @@ class SchedulerService {
         final farmerMargin = slot.maxFarmers == 0
             ? 0.0
             : remainingFarmers / slot.maxFarmers;
-        final bufferMinutes =
-            slot.start.difference(now).inMinutes -
-            farmer.estimatedTravelMinutes;
+        final bufferMinutes = allInPast
+            ? 60
+            : (slot.start.difference(now).inMinutes -
+                farmer.estimatedTravelMinutes);
         final bufferScore = bufferMinutes.clamp(0, 180) / 180;
         // Earlier slots score slightly higher so the recommendation favours
         // the soonest genuinely feasible option, not just the emptiest one.
@@ -149,8 +155,9 @@ class SchedulerService {
 
         final reasons = <String>[];
         if (quantityMargin > 0.3) reasons.add('enough capacity');
-        if (bufferMinutes >= 30)
+        if (bufferMinutes >= 30) {
           reasons.add('sufficient travel time for your location');
+        }
         if (reasons.isEmpty) reasons.add('meets all booking requirements');
         reason = reasons.join(' and ');
       } else {

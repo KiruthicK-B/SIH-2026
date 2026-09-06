@@ -1,7 +1,10 @@
+import '../models/enums.dart';
 import '../models/notification.dart';
 
 /// Builds notification records. There is no real SMS/push provider — this
-/// simulates the delivery event so the UI has something truthful to show.
+/// simulates the delivery event so the UI has something truthful to show,
+/// including an occasional simulated delivery failure with a retry path
+/// (README §7 "Notifications" edge cases).
 class NotificationService {
   const NotificationService();
 
@@ -11,7 +14,10 @@ class NotificationService {
     required String title,
     required String message,
     required DateTime timestamp,
-    NotificationKind kind = NotificationKind.general,
+    NotificationType type = NotificationType.general,
+    NotificationChannel channel = NotificationChannel.app,
+    String language = 'en',
+    NotificationDeliveryStatus deliveryStatus = NotificationDeliveryStatus.sent,
   }) {
     return NotificationItem(
       id: id,
@@ -19,12 +25,17 @@ class NotificationService {
       title: title,
       message: message,
       timestamp: timestamp,
-      kind: kind,
+      type: type,
+      channel: channel,
+      language: language,
+      deliveryStatus: deliveryStatus,
     );
   }
 
   NotificationItem markRead(NotificationItem item) => item.copyWith(read: true);
 
-  NotificationItem retry(NotificationItem item) =>
-      item.copyWith(deliveryFailed: false);
+  NotificationItem retry(NotificationItem item) => item.copyWith(
+    deliveryStatus: NotificationDeliveryStatus.sent,
+    retryCount: item.retryCount + 1,
+  );
 }

@@ -3,9 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme.dart';
-import '../../providers/app_state_provider.dart';
+import '../../state/booking_controller.dart';
 import '../../widgets/agriva_app_bar.dart';
 import '../../widgets/app_buttons.dart';
+import '../../widgets/app_states.dart';
 import '../../widgets/max_width_body.dart';
 
 class CheckinScreen extends ConsumerWidget {
@@ -14,53 +15,56 @@ class CheckinScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final appState = ref.watch(appStateProvider);
-    final booking = appState.bookings.firstWhere((b) => b.id == bookingId);
-    final farmer = appState.farmers.firstWhere((f) => f.id == booking.farmerId);
+    final bookingAsync = ref.watch(bookingByIdProvider(bookingId));
 
     return Scaffold(
       appBar: const AgrivaAppBar(title: 'Farmer Check-in'),
       body: MaxWidthBody(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AgrivaColors.border),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _Row('Booking ID', booking.id),
-                    _Row('Farmer', farmer.name),
-                    _Row('Token', booking.token),
-                    _Row(
-                      'Expected Quantity',
-                      '${booking.expectedQuantityQ.toStringAsFixed(0)} Q',
+        child: bookingAsync.when(
+          loading: () => const LoadingState(),
+          error: (e, st) => const ErrorState(),
+          data: (booking) {
+            if (booking == null) return const ErrorState(message: 'Booking not found.');
+            final farmerAsync = ref.watch(farmerByIdProvider(booking.farmerId));
+            final farmer = farmerAsync.value;
+
+            return Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AgrivaColors.border),
                     ),
-                  ],
-                ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _Row('Booking ID', booking.id),
+                        _Row('Farmer', farmer?.name ?? '—'),
+                        _Row('Token', booking.token),
+                        _Row('Expected Quantity', '${booking.expectedQuantityQ.toStringAsFixed(0)} Q'),
+                      ],
+                    ),
+                  ),
+                  const Spacer(),
+                  PrimaryButton(
+                    label: 'Confirm Arrival',
+                    onPressed: () async {
+                      final result = await ref.read(bookingControllerProvider).checkInFarmer(bookingId);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message)));
+                        if (result.success) context.pop();
+                      }
+                    },
+                  ),
+                ],
               ),
-              const Spacer(),
-              PrimaryButton(
-                label: 'Confirm Arrival',
-                onPressed: () {
-                  final result = ref
-                      .read(appStateProvider.notifier)
-                      .checkInFarmer(bookingId);
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text(result.message)));
-                  if (result.success) context.pop();
-                },
-              ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
@@ -79,17 +83,8 @@ class _Row extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 13,
-              color: AgrivaColors.textSecondary,
-            ),
-          ),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-          ),
+          Text(label, style: const TextStyle(fontSize: 13, color: AgrivaColors.textSecondary)),
+          Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
         ],
       ),
     );

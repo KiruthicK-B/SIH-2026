@@ -6,14 +6,10 @@ import '../models/slot.dart';
 class CapacityService {
   const CapacityService();
 
-  bool _isActiveForCapacity(Booking b) => [
-    BookingStatus.requested,
-    BookingStatus.held,
-    BookingStatus.confirmed,
-    BookingStatus.checkedIn,
-    BookingStatus.inQueue,
-    BookingStatus.processing,
-    BookingStatus.completed,
+  bool _isActiveForCapacity(Booking b) => ![
+    BookingStatus.cancelled,
+    BookingStatus.noShow,
+    BookingStatus.waitlisted,
   ].contains(b.status);
 
   int bookedFarmersForSlot(Slot slot, List<Booking> bookings) {

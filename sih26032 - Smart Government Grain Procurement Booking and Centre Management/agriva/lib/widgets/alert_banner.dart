@@ -43,6 +43,11 @@ class AlertBanner extends StatelessWidget {
       AgrivaColors.inactiveBg,
       Icons.circle_outlined,
     ),
+    StatusTone.purple => (
+      const Color(0xFF7C3AED),
+      const Color(0xFFF3E8FF),
+      Icons.shield_outlined,
+    ),
   };
 
   @override

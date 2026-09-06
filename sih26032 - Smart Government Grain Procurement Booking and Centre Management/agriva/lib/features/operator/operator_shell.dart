@@ -33,9 +33,9 @@ class _OperatorShellState extends State<OperatorShell> {
       label: 'Bookings',
     ),
     ShellDestination(
-      icon: Icons.more_horiz,
-      activeIcon: Icons.more_horiz,
-      label: 'More',
+      icon: Icons.account_circle_outlined,
+      activeIcon: Icons.account_circle,
+      label: 'Account',
     ),
   ];
 

@@ -33,6 +33,11 @@ class AdaptiveShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surface = isDark ? AgrivaColors.surfaceDark : Colors.white;
+    final selectedColor = isDark ? AgrivaColors.primaryAccentDark : AgrivaColors.primary;
+    final unselectedColor = isDark ? AgrivaColors.textSecondaryDark : AgrivaColors.textSecondary;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWide = constraints.maxWidth >= _wideBreakpoint;
@@ -41,10 +46,17 @@ class AdaptiveShell extends StatelessWidget {
           return Scaffold(
             body: IndexedStack(index: index, children: pages),
             bottomNavigationBar: BottomNavigationBar(
+              type: BottomNavigationBarType.fixed,
+              backgroundColor: surface,
+              selectedItemColor: selectedColor,
+              unselectedItemColor: unselectedColor,
+              selectedFontSize: 11,
+              unselectedFontSize: 11,
+              selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700),
+              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),
+              elevation: 8,
               currentIndex: index,
               onTap: onTap,
-              selectedFontSize: 12,
-              unselectedFontSize: 12,
               items: [
                 for (final d in destinations)
                   BottomNavigationBarItem(
@@ -65,7 +77,11 @@ class AdaptiveShell extends StatelessWidget {
                   selectedIndex: index,
                   onDestinationSelected: onTap,
                   labelType: NavigationRailLabelType.all,
-                  backgroundColor: AgrivaColors.surface,
+                  backgroundColor: surface,
+                  selectedIconTheme: IconThemeData(color: selectedColor),
+                  unselectedIconTheme: IconThemeData(color: unselectedColor),
+                  selectedLabelTextStyle: TextStyle(color: selectedColor, fontWeight: FontWeight.w700, fontSize: 11),
+                  unselectedLabelTextStyle: TextStyle(color: unselectedColor, fontWeight: FontWeight.w500, fontSize: 11),
                   minWidth: 84,
                   destinations: [
                     for (final d in destinations)
@@ -76,7 +92,7 @@ class AdaptiveShell extends StatelessWidget {
                       ),
                   ],
                 ),
-                const VerticalDivider(width: 1),
+                VerticalDivider(width: 1, color: isDark ? AgrivaColors.borderDark : AgrivaColors.border),
                 Expanded(
                   child: IndexedStack(index: index, children: pages),
                 ),

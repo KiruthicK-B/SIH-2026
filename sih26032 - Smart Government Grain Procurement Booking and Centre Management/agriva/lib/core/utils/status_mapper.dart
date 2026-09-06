@@ -2,37 +2,39 @@ import '../../models/enums.dart';
 import '../../widgets/status_badge.dart';
 
 StatusTone toneForBookingStatus(BookingStatus s) => switch (s) {
-  BookingStatus.confirmed ||
-  BookingStatus.checkedIn ||
-  BookingStatus.completed => StatusTone.success,
+  BookingStatus.accepted ||
+  BookingStatus.paymentCompleted ||
+  BookingStatus.checkedIn => StatusTone.success,
+  BookingStatus.booked ||
   BookingStatus.inQueue ||
-  BookingStatus.processing ||
-  BookingStatus.waitlisted => StatusTone.warning,
-  BookingStatus.notAccepted ||
+  BookingStatus.underQualityCheck ||
+  BookingStatus.partiallyAccepted ||
+  BookingStatus.paymentPending ||
+  BookingStatus.paymentInitiated ||
+  BookingStatus.waitlisted ||
+  BookingStatus.rescheduleRequired => StatusTone.warning,
+  BookingStatus.rejected ||
+  BookingStatus.paymentFailed ||
   BookingStatus.cancelled ||
   BookingStatus.noShow => StatusTone.error,
-  BookingStatus.rescheduleRequired => StatusTone.warning,
-  _ => StatusTone.inactive,
 };
 
 StatusTone toneForCentreStatus(CentreStatus s) => switch (s) {
   CentreStatus.open => StatusTone.success,
-  CentreStatus.delayed => StatusTone.warning,
-  CentreStatus.paused || CentreStatus.closed => StatusTone.error,
+  CentreStatus.temporarilyDisrupted => StatusTone.warning,
+  CentreStatus.closed => StatusTone.error,
 };
 
 StatusTone toneForPaymentStatus(PaymentStatus s) => switch (s) {
-  PaymentStatus.paid => StatusTone.success,
-  PaymentStatus.processing ||
-  PaymentStatus.initiated ||
-  PaymentStatus.pending => StatusTone.warning,
-  PaymentStatus.failed || PaymentStatus.exception => StatusTone.error,
+  PaymentStatus.completed => StatusTone.success,
+  PaymentStatus.processing || PaymentStatus.initiated => StatusTone.warning,
+  PaymentStatus.failed => StatusTone.error,
   PaymentStatus.notInitiated => StatusTone.inactive,
 };
 
-StatusTone toneForInspection(InspectionStatus s) => switch (s) {
-  InspectionStatus.passed => StatusTone.success,
-  InspectionStatus.furtherInspection => StatusTone.warning,
-  InspectionStatus.notAccepted => StatusTone.error,
-  InspectionStatus.pending => StatusTone.inactive,
+StatusTone toneForGrievanceStatus(GrievanceStatus s) => switch (s) {
+  GrievanceStatus.resolved => StatusTone.success,
+  GrievanceStatus.open || GrievanceStatus.inReview => StatusTone.warning,
+  GrievanceStatus.escalated => StatusTone.info,
+  GrievanceStatus.rejected => StatusTone.error,
 };

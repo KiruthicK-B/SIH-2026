@@ -28,7 +28,7 @@ class ReschedulerService {
     List<Booking> bookings,
   ) {
     const activeStatuses = [
-      BookingStatus.confirmed,
+      BookingStatus.booked,
       BookingStatus.checkedIn,
       BookingStatus.inQueue,
     ];

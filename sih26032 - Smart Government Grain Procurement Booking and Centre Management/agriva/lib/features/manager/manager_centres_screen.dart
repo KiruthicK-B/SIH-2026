@@ -3,129 +3,124 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/theme.dart';
 import '../../core/utils/status_mapper.dart';
-import '../../data/manager_kpis.dart';
+import '../../models/centre.dart';
 import '../../models/enums.dart';
-import '../../providers/app_state_provider.dart';
-import '../../services/capacity_service.dart';
+import '../../services/scheduler_service.dart';
+import '../../state/auth_controller.dart';
+import '../../state/booking_controller.dart';
 import '../../widgets/agriva_app_bar.dart';
+import '../../widgets/app_states.dart';
 import '../../widgets/progress_stat_bar.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/max_width_body.dart';
-
-const _capacity = CapacityService();
+import 'district_providers.dart';
 
 class ManagerCentresScreen extends ConsumerWidget {
   const ManagerCentresScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final appState = ref.watch(appStateProvider);
-    final today = DateTime.now();
-    final todayDate = DateTime(today.year, today.month, today.day);
+    final user = ref.watch(authControllerProvider);
+    final userDistrict = user?.district;
+    final districtKey = (userDistrict != null && userDistrict.isNotEmpty)
+        ? userDistrict
+        : 'district-erode';
+    final dataAsync = ref.watch(districtDataProvider(districtKey));
 
     return Scaffold(
       appBar: const AgrivaAppBar(title: 'Centres'),
       body: MaxWidthBody(
-        child: ListView.separated(
-          padding: const EdgeInsets.all(16),
-          itemCount: appState.centres.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (context, i) {
-            final centre = appState.centres[i];
-            final remainingCapacity = _capacity.getRemainingDailyCapacity(
-              centre,
-              todayDate,
-              appState.slots,
-              appState.bookings,
-            );
-            final bookedCapacity =
-                (centre.dailyProcessingCapacityQ - remainingCapacity).clamp(
-                  0,
-                  centre.dailyProcessingCapacityQ,
-                );
+        child: dataAsync.when(
+          loading: () => const LoadingState(),
+          error: (e, st) => const ErrorState(),
+          data: (data) => ListView.separated(
+            padding: const EdgeInsets.all(16),
+            itemCount: data.centres.length,
+            separatorBuilder: (_, _) => const SizedBox(height: 12),
+            itemBuilder: (context, i) {
+              final centre = data.centres[i];
+              final centreBookings = data.bookings.where((b) => b.centreId == centre.id).toList();
 
-            final centreBookingIds = appState.bookings
-                .where((b) => b.centreId == centre.id)
-                .map((b) => b.id)
-                .toSet();
-            final activeQueue = appState.queueEntries
-                .where(
-                  (q) =>
-                      centreBookingIds.contains(q.bookingId) &&
-                      q.stage != QueueStage.completed &&
-                      q.stage != QueueStage.exception,
-                )
-                .length;
-            final avgWait =
-                ManagerKpis.avgWaitByCentre[centre.name.contains('Nagpur')
-                    ? 'Nagpur Centre'
-                    : 'Akola Centre'] ??
-                0;
+              // Slot-level capacity math needs the centre's slots; the
+              // district roll-up only carries bookings, so approximate
+              // today's booked quantity directly from today's bookings.
+              final bookedCapacity = centreBookings
+                  .fold<double>(0, (sum, b) => sum + b.expectedQuantityQ)
+                  .clamp(0, centre.dailyProcessingCapacityQ);
 
-            return Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AgrivaColors.border),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          centre.name,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14.5,
-                          ),
+              final isDark = Theme.of(context).brightness == Brightness.dark;
+              final cardBg = isDark ? AgrivaColors.surfaceDark : Colors.white;
+              final cardBorder = isDark ? AgrivaColors.borderDark : AgrivaColors.border;
+
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: cardBorder),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(centre.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5)),
                         ),
-                      ),
-                      StatusBadge(
-                        label: centre.status.label,
-                        tone: toneForCentreStatus(centre.status),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  ProgressStatBar(
-                    label: 'Processing Capacity',
-                    current: bookedCapacity.toDouble(),
-                    max: centre.dailyProcessingCapacityQ,
-                  ),
-                  const SizedBox(height: 10),
-                  ProgressStatBar(
-                    label: 'Storage',
-                    current: centre.currentStorageQ,
-                    max: centre.storageCapacityQ,
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _Mini(label: 'Queue', value: '$activeQueue'),
-                      ),
-                      Expanded(
-                        child: _Mini(label: 'Avg Wait', value: '$avgWait min'),
-                      ),
-                      Expanded(
-                        child: _Mini(
-                          label: 'Lanes',
-                          value:
-                              '${centre.processingLanesActive}/${centre.processingLanesTotal}',
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
+                        StatusBadge(label: centre.status.label, tone: toneForCentreStatus(centre.status)),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    ProgressStatBar(
+                      label: 'Processing Capacity',
+                      current: bookedCapacity.toDouble(),
+                      max: centre.dailyProcessingCapacityQ,
+                    ),
+                    const SizedBox(height: 10),
+                    ProgressStatBar(label: 'Storage', current: centre.currentStorageQ, max: centre.storageCapacityQ),
+                    const SizedBox(height: 12),
+                    _CentreQueueStats(centre: centre),
+                  ],
+                ),
+              );
+            },
+          ),
         ),
       ),
+    );
+  }
+}
+
+/// Live queue length + estimated wait for one centre, computed from real
+/// queue entries (the same scheduler logic the farmer's own queue screen
+/// uses) instead of a fixed per-centre lookup table.
+class _CentreQueueStats extends ConsumerWidget {
+  final ProcurementCentre centre;
+  const _CentreQueueStats({required this.centre});
+
+  static const _scheduler = SchedulerService();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final activeQueue = ref.watch(queueTotalForCentreProvider(centre.id)).value ?? 0;
+    final avgWait = activeQueue == 0
+        ? 0
+        : _scheduler.estimateWaitMinutes(
+            queuePosition: (activeQueue / 2).ceil(),
+            activeLanes: centre.processingLanesActive,
+          );
+    return Row(
+      children: [
+        Expanded(child: _Mini(label: 'Queue', value: '$activeQueue')),
+        Expanded(child: _Mini(label: 'Avg Wait', value: '$avgWait min')),
+        Expanded(
+          child: _Mini(
+            label: 'Lanes',
+            value: '${centre.processingLanesActive}/${centre.processingLanesTotal}',
+          ),
+        ),
+      ],
     );
   }
 }
@@ -140,14 +135,8 @@ class _Mini extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 11, color: AgrivaColors.textMuted),
-        ),
-        Text(
-          value,
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-        ),
+        Text(label, style: const TextStyle(fontSize: 11, color: AgrivaColors.textMuted)),
+        Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
       ],
     );
   }

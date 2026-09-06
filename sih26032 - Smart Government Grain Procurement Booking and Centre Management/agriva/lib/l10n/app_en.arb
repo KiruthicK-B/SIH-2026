@@ -1,0 +1,70 @@
+{
+  "@@locale": "en",
+  "appName": "Agriva",
+  "appTagline": "Smart Procurement | Better Planning | Happier Farmers",
+
+  "chooseLanguage": "Choose your language",
+  "continueLabel": "Continue",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "back": "Back",
+  "retry": "Retry",
+  "save": "Save",
+  "edit": "Edit",
+  "delete": "Delete",
+  "logout": "Logout",
+  "logoutConfirmTitle": "Log out?",
+  "logoutConfirmBody": "You'll need to log in again to access your account.",
+  "yes": "Yes",
+  "no": "No",
+  "seeAll": "See all",
+  "loading": "Loading…",
+  "somethingWentWrong": "Something went wrong",
+  "noDataYet": "Nothing here yet",
+
+  "roleFarmer": "Farmer",
+  "roleStaff": "Staff",
+  "roleCentreOperator": "Centre Operator",
+  "roleDistrictAdmin": "District Admin",
+  "roleStateAdmin": "State Admin",
+
+  "navHome": "Home",
+  "navBookings": "Bookings",
+  "navAlerts": "Alerts",
+  "navProfile": "Profile",
+  "navDashboard": "Dashboard",
+  "navCentres": "Centres",
+  "navAnalytics": "Analytics",
+  "navQueue": "Queue",
+  "navPayments": "Payments",
+  "navGrievances": "Grievances",
+  "navMore": "More",
+
+  "loginTitle": "Agriva Login",
+  "mobileNumber": "Mobile Number",
+  "sendOtp": "Send OTP",
+  "enterOtp": "Enter OTP",
+  "verifyAndContinue": "Verify & Continue",
+  "resendOtpIn": "Resend OTP in {seconds}s",
+  "@resendOtpIn": {
+    "placeholders": { "seconds": { "type": "int" } }
+  },
+  "resendOtp": "Resend OTP",
+  "otpIncorrect": "Incorrect OTP. Please try again.",
+  "otpExpired": "This OTP has expired. Please resend.",
+  "otpTooManyAttempts": "Too many incorrect attempts. Try again in {minutes} min.",
+  "@otpTooManyAttempts": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "employeeId": "Employee ID",
+  "password": "Password",
+  "login": "Login",
+  "forgotPassword": "Forgot password?",
+  "invalidCredentials": "Incorrect Employee ID or password.",
+  "wrongRoleTab": "This ID belongs to a different role. Please switch tabs.",
+  "accountLocked": "Account locked. Try again in {minutes} min.",
+  "@accountLocked": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "newFarmerHint": "New farmer? Registration starts automatically after OTP verification if no account is found."
+}

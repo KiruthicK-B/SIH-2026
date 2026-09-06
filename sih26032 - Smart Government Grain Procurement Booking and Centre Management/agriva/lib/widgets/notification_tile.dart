@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../app/theme.dart';
+import '../models/enums.dart';
 import '../models/notification.dart';
 
 class NotificationTile extends StatelessWidget {
@@ -16,16 +17,20 @@ class NotificationTile extends StatelessWidget {
     this.onRetry,
   });
 
-  IconData get _icon => switch (item.kind) {
-    NotificationKind.slotConfirmed => Icons.check_circle_outline,
-    NotificationKind.reminder => Icons.access_time_outlined,
-    NotificationKind.centreDelay => Icons.warning_amber_outlined,
-    NotificationKind.rescheduleRequired => Icons.event_repeat_outlined,
-    NotificationKind.newSlotOffered => Icons.calendar_today_outlined,
-    NotificationKind.qualityResult => Icons.inventory_2_outlined,
-    NotificationKind.procurementComplete => Icons.scale_outlined,
-    NotificationKind.payment => Icons.payments_outlined,
-    NotificationKind.general => Icons.notifications_none_outlined,
+  IconData get _icon => switch (item.type) {
+    NotificationType.slotConfirmation => Icons.check_circle_outline,
+    NotificationType.reminder => Icons.access_time_outlined,
+    NotificationType.delay => Icons.warning_amber_outlined,
+    NotificationType.rescheduleRequired => Icons.event_repeat_outlined,
+    NotificationType.newSlotOffered => Icons.calendar_today_outlined,
+    NotificationType.qualityResult => Icons.inventory_2_outlined,
+    NotificationType.procurementComplete => Icons.scale_outlined,
+    NotificationType.paymentUpdate => Icons.payments_outlined,
+    NotificationType.rejection => Icons.report_gmailerrorred_outlined,
+    NotificationType.grievanceUpdate => Icons.support_agent_outlined,
+    NotificationType.broadcast => Icons.campaign_outlined,
+    NotificationType.queueUpdate => Icons.groups_outlined,
+    NotificationType.general => Icons.notifications_none_outlined,
   };
 
   @override

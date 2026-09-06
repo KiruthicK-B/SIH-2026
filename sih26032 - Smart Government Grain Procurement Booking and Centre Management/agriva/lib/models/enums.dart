@@ -1,27 +1,50 @@
 /// All shared enums for AGRIVA. Kept together so status-transition rules
-/// (README §102-103) can be reasoned about in one place.
+/// (README §4, §6) can be reasoned about in one place.
+///
+/// Where the README's own enumeration is a floor rather than a ceiling
+/// (it says as much explicitly for languages, and the same spirit applies
+/// to internal operational detail), a few extra values are kept alongside
+/// the spec's values when the existing queue/disruption logic genuinely
+/// needs the finer granularity — each is called out below.
 library;
 
-enum UserRole { farmer, operator, manager, admin }
+enum UserRole { farmer, centreOperator, districtAdmin, stateAdmin }
 
+/// README §4 booking lifecycle, exactly:
+/// Booked → Checked-In → In-Queue → Under Quality Check →
+/// Accepted / Partially-Accepted / Rejected → Payment Pending →
+/// Payment Initiated → Payment Completed / Payment Failed
+/// plus the alternate terminal paths: Cancelled, No-Show, Waitlisted.
+/// `rescheduleRequired` is an extra transient state (not in the spec list)
+/// needed by the existing disruption-driven rebooking flow — a booking
+/// sits here between "centre can no longer honour the original slot" and
+/// "farmer accepted/declined a replacement".
 enum BookingStatus {
-  requested,
-  held,
-  confirmed,
+  booked,
   checkedIn,
   inQueue,
-  processing,
-  completed,
-  notAccepted,
+  underQualityCheck,
+  accepted,
+  partiallyAccepted,
+  rejected,
+  paymentPending,
+  paymentInitiated,
+  paymentCompleted,
+  paymentFailed,
   cancelled,
   noShow,
-  rescheduleRequired,
   waitlisted,
-  expired,
+  rescheduleRequired,
 }
 
-enum CentreStatus { open, delayed, paused, closed }
+/// README §4 ProcurementCentre.status is a 3-state (open/closed/
+/// temporarily_disrupted) summary; the underlying disruption record still
+/// carries the specific type/expected-resolution detail operators need.
+enum CentreStatus { open, temporarilyDisrupted, closed }
 
+/// Fine-grained internal stage feeding a booking's coarser
+/// `underQualityCheck` status — operator-facing detail, not itself part of
+/// the farmer-facing lifecycle.
 enum QueueStage {
   arrived,
   qualityCheck,
@@ -31,17 +54,11 @@ enum QueueStage {
   exception,
 }
 
-enum InspectionStatus { pending, passed, notAccepted, furtherInspection }
-
-enum PaymentStatus {
-  notInitiated,
-  initiated,
-  processing,
-  paid,
-  pending,
-  failed,
-  exception,
-}
+/// README §4 Payment.status, plus `processing` — kept distinct from
+/// `initiated` because README §5.1 explicitly requires the UI to
+/// distinguish "agency hasn't released funds" from "processing" from
+/// "credited" as different problems with different resolutions.
+enum PaymentStatus { notInitiated, initiated, processing, completed, failed }
 
 enum DisruptionStatus { active, resolved, cancelled }
 
@@ -70,38 +87,86 @@ enum SlotInvalidReason {
 
 enum StorageLevel { normal, nearFull, full }
 
+/// README §4 Grievance.category
+enum GrievanceCategory {
+  qualityDispute,
+  paymentDelay,
+  slotIssue,
+  impersonation,
+  other,
+}
+
+/// README §4 Grievance.status
+enum GrievanceStatus { open, inReview, escalated, resolved, rejected }
+
+/// README §4 Grievance.escalationLevel
+enum EscalationLevel { centre, district, state }
+
+/// README §4 Notification.channel
+enum NotificationChannel { sms, app, both }
+
+/// README §4 Notification.deliveryStatus
+enum NotificationDeliveryStatus { sent, failed, pending, retrying }
+
+/// README §4 Notification.type, plus a few operational extras the existing
+/// queue/reschedule engine relies on (rescheduleRequired, newSlotOffered,
+/// qualityResult, procurementComplete) that are more specific than the
+/// spec's own `queue_update`/`general` buckets.
+enum NotificationType {
+  slotConfirmation,
+  reminder,
+  queueUpdate,
+  delay,
+  paymentUpdate,
+  rejection,
+  grievanceUpdate,
+  broadcast,
+  general,
+  rescheduleRequired,
+  newSlotOffered,
+  qualityResult,
+  procurementComplete,
+}
+
+/// README §4 LandRecord.ownershipType
+enum LandOwnershipType { owner, tenant, sharecropper }
+
+/// README §4 Crop.season
+enum CropSeason { rabi, kharif, zaid }
+
 extension UserRoleLabel on UserRole {
   String get label => switch (this) {
     UserRole.farmer => 'Farmer',
-    UserRole.operator => 'Centre Operator',
-    UserRole.manager => 'Centre Manager',
-    UserRole.admin => 'Admin',
+    UserRole.centreOperator => 'Centre Operator',
+    UserRole.districtAdmin => 'District Admin',
+    UserRole.stateAdmin => 'State Admin',
   };
 }
 
 extension BookingStatusLabel on BookingStatus {
   String get label => switch (this) {
-    BookingStatus.requested => 'Requested',
-    BookingStatus.held => 'Held',
-    BookingStatus.confirmed => 'Confirmed',
-    BookingStatus.checkedIn => 'Checked In',
+    BookingStatus.booked => 'Booked',
+    BookingStatus.checkedIn => 'Checked-In',
     BookingStatus.inQueue => 'In Queue',
-    BookingStatus.processing => 'Processing',
-    BookingStatus.completed => 'Completed',
-    BookingStatus.notAccepted => 'Not Accepted',
+    BookingStatus.underQualityCheck => 'Under Quality Check',
+    BookingStatus.accepted => 'Accepted',
+    BookingStatus.partiallyAccepted => 'Partially Accepted',
+    BookingStatus.rejected => 'Rejected',
+    BookingStatus.paymentPending => 'Payment Pending',
+    BookingStatus.paymentInitiated => 'Payment Initiated',
+    BookingStatus.paymentCompleted => 'Payment Completed',
+    BookingStatus.paymentFailed => 'Payment Failed',
     BookingStatus.cancelled => 'Cancelled',
     BookingStatus.noShow => 'No-show',
-    BookingStatus.rescheduleRequired => 'Reschedule Required',
     BookingStatus.waitlisted => 'Waitlisted',
-    BookingStatus.expired => 'Expired',
+    BookingStatus.rescheduleRequired => 'Reschedule Required',
   };
 }
 
 extension CentreStatusLabel on CentreStatus {
   String get label => switch (this) {
     CentreStatus.open => 'Open',
-    CentreStatus.delayed => 'Delayed',
-    CentreStatus.paused => 'Paused',
+    CentreStatus.temporarilyDisrupted => 'Temporarily Disrupted',
     CentreStatus.closed => 'Closed',
   };
 }
@@ -117,24 +182,13 @@ extension QueueStageLabel on QueueStage {
   };
 }
 
-extension InspectionStatusLabel on InspectionStatus {
-  String get label => switch (this) {
-    InspectionStatus.pending => 'Pending',
-    InspectionStatus.passed => 'Passed',
-    InspectionStatus.notAccepted => 'Not Accepted',
-    InspectionStatus.furtherInspection => 'Further Inspection',
-  };
-}
-
 extension PaymentStatusLabel on PaymentStatus {
   String get label => switch (this) {
     PaymentStatus.notInitiated => 'Not Initiated',
     PaymentStatus.initiated => 'Initiated',
     PaymentStatus.processing => 'Processing',
-    PaymentStatus.paid => 'Paid',
-    PaymentStatus.pending => 'Pending',
+    PaymentStatus.completed => 'Completed',
     PaymentStatus.failed => 'Failed',
-    PaymentStatus.exception => 'Exception',
   };
 }
 
@@ -168,3 +222,64 @@ extension SlotInvalidReasonLabel on SlotInvalidReason {
     SlotInvalidReason.disruptionActive => 'Centre disruption is active',
   };
 }
+
+extension GrievanceCategoryLabel on GrievanceCategory {
+  String get label => switch (this) {
+    GrievanceCategory.qualityDispute => 'Quality Dispute',
+    GrievanceCategory.paymentDelay => 'Payment Delay',
+    GrievanceCategory.slotIssue => 'Slot Issue',
+    GrievanceCategory.impersonation => 'Impersonation',
+    GrievanceCategory.other => 'Other',
+  };
+}
+
+extension GrievanceStatusLabel on GrievanceStatus {
+  String get label => switch (this) {
+    GrievanceStatus.open => 'Open',
+    GrievanceStatus.inReview => 'In Review',
+    GrievanceStatus.escalated => 'Escalated',
+    GrievanceStatus.resolved => 'Resolved',
+    GrievanceStatus.rejected => 'Rejected',
+  };
+}
+
+extension EscalationLevelLabel on EscalationLevel {
+  String get label => switch (this) {
+    EscalationLevel.centre => 'Centre',
+    EscalationLevel.district => 'District',
+    EscalationLevel.state => 'State',
+  };
+}
+
+extension CropSeasonLabel on CropSeason {
+  String get label => switch (this) {
+    CropSeason.rabi => 'Rabi',
+    CropSeason.kharif => 'Kharif',
+    CropSeason.zaid => 'Zaid',
+  };
+}
+
+extension LandOwnershipTypeLabel on LandOwnershipType {
+  String get label => switch (this) {
+    LandOwnershipType.owner => 'Owner',
+    LandOwnershipType.tenant => 'Tenant',
+    LandOwnershipType.sharecropper => 'Sharecropper',
+  };
+}
+
+enum FarmerVerificationStatus {
+  pendingApproval,
+  approved,
+  rejected,
+  escalatedToDistrict,
+}
+
+extension FarmerVerificationStatusLabel on FarmerVerificationStatus {
+  String get label => switch (this) {
+    FarmerVerificationStatus.pendingApproval => 'Pending Approval',
+    FarmerVerificationStatus.approved => 'Verified & Approved',
+    FarmerVerificationStatus.rejected => 'Verification Rejected',
+    FarmerVerificationStatus.escalatedToDistrict => 'Escalated to District Admin',
+  };
+}
+

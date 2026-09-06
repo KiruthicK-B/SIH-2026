@@ -5,20 +5,89 @@ import 'package:intl/intl.dart';
 
 import '../../app/theme.dart';
 import '../../core/utils/list_extensions.dart';
+import '../../models/booking.dart';
+import '../../models/centre.dart';
+import '../../models/crop.dart';
 import '../../models/enums.dart';
-import '../../providers/app_state_provider.dart';
+import '../../models/farmer.dart';
+import '../../models/slot.dart';
+import '../../repositories/repository_providers.dart';
+import '../../state/auth_controller.dart';
+import '../../state/booking_controller.dart';
+import '../../state/data_revision.dart';
+import '../../state/locale_controller.dart';
 import '../../widgets/alert_banner.dart';
 import '../../widgets/app_states.dart';
+import '../../widgets/confirm_dialog.dart';
 import '../../widgets/max_width_body.dart';
 import '../../widgets/status_badge.dart';
 
 const _upcomingCardStatuses = [
-  BookingStatus.confirmed,
+  BookingStatus.booked,
   BookingStatus.checkedIn,
   BookingStatus.inQueue,
-  BookingStatus.processing,
+  BookingStatus.underQualityCheck,
   BookingStatus.rescheduleRequired,
 ];
+
+class _HomeData {
+  final Farmer farmer;
+  final Booking? upcoming;
+  final Slot? upcomingSlot;
+  final ProcurementCentre? upcomingCentre;
+  final Booking? rescheduleNeeded;
+
+  const _HomeData({
+    required this.farmer,
+    this.upcoming,
+    this.upcomingSlot,
+    this.upcomingCentre,
+    this.rescheduleNeeded,
+  });
+}
+
+final _homeDataProvider = FutureProvider.family<_HomeData?, String>((
+  ref,
+  farmerId,
+) async {
+  ref.watch(dataRevisionProvider);
+  final farmer = await ref.read(farmerRepositoryProvider).getById(farmerId);
+  if (farmer == null) return null;
+
+  final bookings = await ref.read(bookingRepositoryProvider).forFarmer(farmerId);
+  final slotRepo = ref.read(slotRepositoryProvider);
+
+  final upcomingCandidates = bookings
+      .where((b) => _upcomingCardStatuses.contains(b.status))
+      .toList();
+  Booking? upcoming;
+  Slot? upcomingSlot;
+  DateTime? earliest;
+  for (final b in upcomingCandidates) {
+    final slot = await slotRepo.getById(b.slotId);
+    if (slot == null) continue;
+    if (earliest == null || slot.start.isBefore(earliest)) {
+      earliest = slot.start;
+      upcoming = b;
+      upcomingSlot = slot;
+    }
+  }
+  final upcomingCentre = upcoming != null
+      ? await ref.read(centreRepositoryProvider).getById(upcoming.centreId)
+      : null;
+
+  final rescheduleNeeded = bookings
+      .where((b) => b.status == BookingStatus.rescheduleRequired)
+      .firstOrNull;
+
+  return _HomeData(
+    farmer: farmer,
+    upcoming: upcoming,
+    upcomingSlot: upcomingSlot,
+    upcomingCentre: upcomingCentre,
+    rescheduleNeeded: rescheduleNeeded,
+  );
+});
 
 class FarmerHomeScreen extends ConsumerWidget {
   final VoidCallback onGoToQueue;
@@ -31,177 +100,461 @@ class FarmerHomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final appState = ref.watch(appStateProvider);
-    final farmerId = appState.currentUser!.id;
-    final farmer = appState.farmers.firstWhere((f) => f.id == farmerId);
+    final user = ref.watch(authControllerProvider);
+    if (user == null) return const SizedBox.shrink();
+    final data = ref.watch(_homeDataProvider(user.id));
+    final cropsAsync = ref.watch(activeCropsProvider);
+    final currentLocale = ref.watch(localeControllerProvider) ?? const Locale('en');
 
-    final myBookings = appState.bookings
-        .where((b) => b.farmerId == farmerId)
-        .toList();
-    final upcoming =
-        myBookings
-            .where((b) => _upcomingCardStatuses.contains(b.status))
-            .toList()
-          ..sort((a, b) {
-            final sa = appState.slots.firstWhere((s) => s.id == a.slotId).start;
-            final sb = appState.slots.firstWhere((s) => s.id == b.slotId).start;
-            return sa.compareTo(sb);
-          });
-    final upcomingBooking = upcoming.firstOrNull;
+    return data.when(
+      loading: () => const Scaffold(body: LoadingState()),
+      error: (e, st) => const Scaffold(body: ErrorState()),
+      data: (home) {
+        if (home == null) return const Scaffold(body: ErrorState());
+        final farmer = home.farmer;
+        final upcoming = home.upcoming;
 
-    final rescheduleNeeded = myBookings
-        .where((b) => b.status == BookingStatus.rescheduleRequired)
-        .firstOrNull;
-
-    return Scaffold(
-      backgroundColor: AgrivaColors.background,
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              farmer.name,
-              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
-            ),
-            Text(
-              'Farmer ID: ${farmer.farmerCode}',
-              style: const TextStyle(fontSize: 11.5, color: Colors.white70),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_none_outlined),
-            onPressed: () => context.push('/farmer/notifications'),
-          ),
-        ],
-      ),
-      body: MaxWidthBody(
-        child: RefreshIndicator(
-          onRefresh: () async {},
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              if (rescheduleNeeded != null) ...[
-                AlertBanner(
-                  title: 'Centre delay',
-                  message:
-                      'Your procurement centre is currently delayed. Review your replacement slot.',
-                  tone: StatusTone.warning,
-                  icon: Icons.warning_amber_outlined,
+        return Scaffold(
+          backgroundColor: AgrivaColors.background,
+          appBar: AppBar(
+            title: Row(
+              children: [
+                Image.asset(
+                  'assets/images/app_icon.png',
+                  height: 28,
+                  fit: BoxFit.contain,
                 ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: TextButton(
-                    onPressed: () => context.push(
-                      '/farmer/reschedule/${rescheduleNeeded.id}',
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              farmer.name,
+                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                            decoration: BoxDecoration(
+                              color: farmer.isVerified ? AgrivaColors.gold : AgrivaColors.warning,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              farmer.isVerified ? 'VERIFIED' : 'VERIFICATION PENDING',
+                              style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        '${farmer.village}, ${farmer.district} • ID: ${farmer.farmerCode}',
+                        style: const TextStyle(fontSize: 11, color: Colors.white70),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              // Language switcher icon
+              PopupMenuButton<Locale>(
+                tooltip: 'Language',
+                initialValue: currentLocale,
+                icon: const Icon(Icons.translate_rounded),
+                onSelected: (locale) {
+                  ref.read(localeControllerProvider.notifier).setLocale(locale);
+                },
+                itemBuilder: (context) => supportedAgrivaLocales.map((l) {
+                  final isSelected = l.languageCode == currentLocale.languageCode;
+                  return PopupMenuItem<Locale>(
+                    value: l,
+                    child: Row(
+                      children: [
+                        Text(
+                          localeDisplayNames[l.languageCode] ?? l.languageCode,
+                          style: TextStyle(
+                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                            color: isSelected ? AgrivaColors.primary : AgrivaColors.textPrimary,
+                          ),
+                        ),
+                        if (isSelected) ...[
+                          const Spacer(),
+                          const Icon(Icons.check, size: 16, color: AgrivaColors.primary),
+                        ],
+                      ],
                     ),
-                    child: const Text('Review replacement slot →'),
-                  ),
-                ),
-                const SizedBox(height: 8),
-              ],
-              const Text(
-                'Upcoming Booking',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                  );
+                }).toList(),
               ),
-              const SizedBox(height: 10),
-              if (upcomingBooking == null)
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 28),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AgrivaColors.border),
-                  ),
-                  child: EmptyState(
-                    icon: Icons.calendar_today_outlined,
-                    title: 'No upcoming bookings',
-                    message: 'Book a slot to get started.',
-                    actionLabel: 'Book Slot',
-                    onAction: () => context.push('/farmer/book-slot'),
-                  ),
-                )
-              else ...[
-                _UpcomingSlotCard(bookingId: upcomingBooking.id),
-                if (upcomingBooking.status == BookingStatus.inQueue ||
-                    upcomingBooking.status == BookingStatus.processing) ...[
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Queue Status',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-                  ),
-                  const SizedBox(height: 10),
-                  _DashboardQueueStats(bookingId: upcomingBooking.id),
-                ],
-              ],
-              const SizedBox(height: 24),
-              const Text(
-                'Quick Actions',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+              IconButton(
+                icon: const Icon(Icons.notifications_none_outlined),
+                onPressed: () => context.push('/farmer/notifications'),
               ),
-              const SizedBox(height: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _QuickAction(
-                    icon: Icons.calendar_today_outlined,
-                    label: 'Book New Slot',
-                    onTap: () => context.push('/farmer/book-slot'),
-                  ),
-                  const SizedBox(height: 10),
-                  _QuickAction(
-                    icon: Icons.event_note_outlined,
-                    label: 'My Bookings',
-                    onTap: onGoToBookings,
-                  ),
-                  const SizedBox(height: 10),
-                  _QuickAction(
-                    icon: Icons.queue_outlined,
-                    label: 'Queue Status',
-                    onTap: onGoToQueue,
-                  ),
-                  const SizedBox(height: 10),
-                  _QuickAction(
-                    icon: Icons.notifications_none_outlined,
-                    label: 'Notifications',
-                    onTap: () => context.push('/farmer/notifications'),
-                  ),
-                ],
+              IconButton(
+                icon: const Icon(Icons.logout_rounded),
+                tooltip: 'Sign Out',
+                onPressed: () => showAgrivaSignOutDialog(context, ref),
               ),
             ],
           ),
-        ),
+          body: MaxWidthBody(
+            child: RefreshIndicator(
+              onRefresh: () async => ref.invalidate(_homeDataProvider(user.id)),
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  // Disruption Alert if any
+                  if (home.rescheduleNeeded != null) ...[
+                    const AlertBanner(
+                      title: 'Procurement Centre Delay Alert',
+                      message:
+                          'Your scheduled procurement centre has reported a capacity disruption. Review and accept your priority replacement slot.',
+                      tone: StatusTone.warning,
+                      icon: Icons.warning_amber_rounded,
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.change_circle_outlined, size: 18),
+                        label: const Text('Review Priority Replacement Slot'),
+                        onPressed: () => context.push(
+                          '/farmer/reschedule/${home.rescheduleNeeded!.id}',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // Live MSP Season Ticker (real master data from the State
+                  // Admin's crop/MSP list, not a fixed snapshot)
+                  cropsAsync.when(
+                    data: (crops) => crops.isEmpty
+                        ? const SizedBox.shrink()
+                        : _buildMspTicker(crops),
+                    loading: () => const SizedBox.shrink(),
+                    error: (e, st) => const SizedBox.shrink(),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Farmer Registration Verification Status Banner
+                  if (!farmer.isVerified) ...[
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: farmer.verificationStatus == FarmerVerificationStatus.escalatedToDistrict
+                            ? const Color(0xFFEDE7F6)
+                            : const Color(0xFFFFF8E1),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: farmer.verificationStatus == FarmerVerificationStatus.escalatedToDistrict
+                              ? const Color(0xFFB39DDB)
+                              : const Color(0xFFFFD54F),
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            farmer.verificationStatus == FarmerVerificationStatus.escalatedToDistrict
+                                ? Icons.hourglass_top_rounded
+                                : Icons.pending_actions_rounded,
+                            color: farmer.verificationStatus == FarmerVerificationStatus.escalatedToDistrict
+                                ? const Color(0xFF5E35B1)
+                                : const Color(0xFFF57F17),
+                            size: 24,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  farmer.verificationStatus == FarmerVerificationStatus.escalatedToDistrict
+                                      ? 'Registration Under District Review'
+                                      : 'Profile Pending Centre Verification',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14,
+                                    color: farmer.verificationStatus == FarmerVerificationStatus.escalatedToDistrict
+                                        ? const Color(0xFF4527A0)
+                                        : const Color(0xFFE65100),
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  farmer.verificationStatus == FarmerVerificationStatus.escalatedToDistrict
+                                      ? 'Your profile has been forwarded to the District Administration for verification clearance. Slot booking will unlock once approved.'
+                                      : 'Your registration is routed to your regional centre (${farmer.assignedCentreId.isNotEmpty ? farmer.assignedCentreId : "assigned centre"}). The operator must approve your identity and land documents before slot booking is unlocked.',
+                                  style: const TextStyle(fontSize: 12, color: AgrivaColors.textPrimary),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  // Section Title: Active Procurement Booking
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Active Procurement Booking',
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimary),
+                      ),
+                      if (upcoming != null)
+                        TextButton(
+                          onPressed: onGoToBookings,
+                          child: const Text('All Bookings →', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+
+                  if (upcoming == null || home.upcomingSlot == null || home.upcomingCentre == null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AgrivaColors.border),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.02),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: EmptyState(
+                        icon: Icons.agriculture_rounded,
+                        title: 'No Active Slot Booking',
+                        message: farmer.isVerified
+                            ? 'Book a certified government slot to sell your harvest at guaranteed MSP.'
+                            : 'Slot booking will unlock once your profile is approved by the Centre Operator.',
+                        actionLabel: farmer.isVerified ? 'Book Procurement Slot' : 'View Verification Status',
+                        onAction: () => context.push('/farmer/book-slot'),
+                      ),
+                    )
+                  else ...[
+                    _UpcomingSlotCard(
+                      booking: upcoming,
+                      slot: home.upcomingSlot!,
+                      centre: home.upcomingCentre!,
+                    ),
+                    if (upcoming.status == BookingStatus.inQueue ||
+                        upcoming.status == BookingStatus.underQualityCheck ||
+                        upcoming.status == BookingStatus.checkedIn) ...[
+                      const SizedBox(height: 12),
+                      _DashboardQueueStats(booking: upcoming, onGoToQueue: onGoToQueue),
+                    ],
+                  ],
+
+                  const SizedBox(height: 22),
+
+                  // Quick Actions Grid (2x2)
+                  const Text(
+                    'Quick Services',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimary),
+                  ),
+                  const SizedBox(height: 12),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _ActionCard(
+                          icon: Icons.add_circle_outline_rounded,
+                          title: 'Book Slot',
+                          subtitle: 'Book grain token',
+                          accentColor: AgrivaColors.primary,
+                          onTap: () => context.push('/farmer/book-slot'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _ActionCard(
+                          icon: Icons.event_note_rounded,
+                          title: 'My Bookings',
+                          subtitle: 'History & status',
+                          accentColor: AgrivaColors.info,
+                          onTap: onGoToBookings,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _ActionCard(
+                          icon: Icons.hourglass_top_rounded,
+                          title: 'Live Queue',
+                          subtitle: 'Track centre tokens',
+                          accentColor: AgrivaColors.gold,
+                          onTap: onGoToQueue,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _ActionCard(
+                          icon: Icons.report_problem_outlined,
+                          title: 'Grievances',
+                          subtitle: 'Disputes & delays',
+                          accentColor: AgrivaColors.error,
+                          onTap: () => context.push('/farmer/grievances'),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Farmer Assistance Card
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: AgrivaColors.primaryLight50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AgrivaColors.borderLight),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.headset_mic_rounded, color: AgrivaColors.primary, size: 24),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text(
+                                'Kisan Procurement Helpline: 1800-180-1551',
+                                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5, color: AgrivaColors.primaryDark),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                'Toll-free DoCA grain assistance (8:00 AM – 8:00 PM)',
+                                style: TextStyle(fontSize: 11, color: AgrivaColors.textSecondary),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildMspTicker(List<Crop> crops) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AgrivaColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: const [
+              Icon(Icons.workspace_premium_rounded, size: 16, color: AgrivaColors.gold),
+              SizedBox(width: 6),
+              Text(
+                'Government Guaranteed MSP Rates 2026',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimary),
+              ),
+              Spacer(),
+              Text(
+                'DoCA Verified',
+                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AgrivaColors.primary),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: crops.map((c) {
+                return Container(
+                  margin: const EdgeInsets.only(right: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AgrivaColors.primaryLight50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AgrivaColors.borderLight),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${c.name} (${c.season.label})',
+                        style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AgrivaColors.textPrimary),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '₹${c.msp.toStringAsFixed(0)}/Q',
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AgrivaColors.primary),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
 class _UpcomingSlotCard extends ConsumerWidget {
-  final String bookingId;
-  const _UpcomingSlotCard({required this.bookingId});
+  final Booking booking;
+  final Slot slot;
+  final ProcurementCentre centre;
+  const _UpcomingSlotCard({
+    required this.booking,
+    required this.slot,
+    required this.centre,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final appState = ref.watch(appStateProvider);
-    final booking = appState.bookings.firstWhere((b) => b.id == bookingId);
-    final slot = appState.slots.firstWhere((s) => s.id == booking.slotId);
-    final centre = appState.centres.firstWhere((c) => c.id == booking.centreId);
-    final wait = ref
-        .read(appStateProvider.notifier)
-        .estimatedWaitFor(bookingId);
-    final inQueue =
-        booking.status == BookingStatus.inQueue ||
-        booking.status == BookingStatus.processing;
-
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AgrivaColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -209,61 +562,65 @@ class _UpcomingSlotCard extends ConsumerWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AgrivaColors.primaryLight,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.grain_rounded, color: AgrivaColors.primary, size: 24),
+              ),
+              const SizedBox(width: 12),
               Expanded(
-                child: Text(
-                  centre.name,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14.5,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      centre.name,
+                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AgrivaColors.textPrimary),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${DateFormat('d MMM yyyy').format(slot.start)} • ${DateFormat('h:mm a').format(slot.start)} – ${DateFormat('h:mm a').format(slot.end)}',
+                      style: const TextStyle(color: AgrivaColors.textSecondary, fontSize: 12.5),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 8),
               StatusBadge(
                 label: booking.status.label,
                 tone: switch (booking.status) {
-                  BookingStatus.confirmed || BookingStatus.checkedIn =>
-                    StatusTone.success,
-                  BookingStatus.inQueue || BookingStatus.processing =>
-                    StatusTone.warning,
+                  BookingStatus.booked || BookingStatus.checkedIn => StatusTone.success,
+                  BookingStatus.inQueue ||
+                  BookingStatus.underQualityCheck ||
                   BookingStatus.rescheduleRequired => StatusTone.warning,
                   _ => StatusTone.inactive,
                 },
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            '${DateFormat('d MMM yyyy').format(slot.start)}, ${DateFormat('h:mm a').format(slot.start)} – ${DateFormat('h:mm a').format(slot.end)}',
-            style: const TextStyle(
-              color: AgrivaColors.textSecondary,
-              fontSize: 13,
-            ),
-          ),
           const SizedBox(height: 14),
+          const Divider(height: 1),
+          const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(
-                child: _MiniStat(label: 'Token', value: booking.token),
-              ),
+              Expanded(child: _MiniStat(label: 'Token Number', value: '#${booking.token}')),
               Expanded(
                 child: _MiniStat(
-                  label: 'Expected Quantity',
-                  value: '${booking.expectedQuantityQ.toStringAsFixed(0)} Q',
+                  label: 'Booked Quantity',
+                  value: '${booking.expectedQuantityQ.toStringAsFixed(0)} Quintals',
                 ),
               ),
-              if (inQueue)
-                Expanded(
-                  child: _MiniStat(label: 'Estimated Wait', value: '$wait min'),
-                ),
+              Expanded(child: _MiniStat(label: 'Taluk / Block', value: centre.taluk)),
             ],
           ),
           const SizedBox(height: 14),
           SizedBox(
             width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () => context.push('/farmer/booking/$bookingId'),
-              child: const Text('View Details'),
+            child: OutlinedButton.icon(
+              icon: const Icon(Icons.receipt_long_rounded, size: 16),
+              label: const Text('View Booking Token & Details'),
+              onPressed: () => context.push('/farmer/booking/${booking.id}'),
             ),
           ),
         ],
@@ -273,88 +630,62 @@ class _UpcomingSlotCard extends ConsumerWidget {
 }
 
 class _DashboardQueueStats extends ConsumerWidget {
-  final String bookingId;
-  const _DashboardQueueStats({required this.bookingId});
+  final Booking booking;
+  final VoidCallback onGoToQueue;
+  const _DashboardQueueStats({required this.booking, required this.onGoToQueue});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final appState = ref.watch(appStateProvider);
-    final notifier = ref.read(appStateProvider.notifier);
-    final position = notifier.queuePositionFor(bookingId);
-    final wait = notifier.estimatedWaitFor(bookingId);
+    final position = ref.watch(queuePositionProvider(booking.id)).value ?? -1;
+    final wait = ref.watch(estimatedWaitProvider(booking.id)).value ?? 0;
+    final total = ref.watch(queueTotalForCentreProvider(booking.centreId)).value ?? 0;
 
-    final booking = appState.bookings.firstWhere((b) => b.id == bookingId);
-    final centreBookingIds = appState.bookings
-        .where((b) => b.centreId == booking.centreId)
-        .map((b) => b.id)
-        .toSet();
-    final totalInQueue = appState.queueEntries
-        .where(
-          (q) =>
-              centreBookingIds.contains(q.bookingId) &&
-              q.stage != QueueStage.completed &&
-              q.stage != QueueStage.exception,
-        )
-        .length;
-
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AgrivaColors.border),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Your Queue Position',
-                  style: TextStyle(fontSize: 11, color: AgrivaColors.textMuted),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  position <= 0 ? '—' : '$position / $totalInQueue',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ],
-            ),
-          ),
+    return InkWell(
+      onTap: onGoToQueue,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AgrivaColors.primaryLight,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AgrivaColors.primaryMedium.withValues(alpha: 0.3)),
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AgrivaColors.border),
+        child: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: const BoxDecoration(
+                color: AgrivaColors.primary,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.timer_outlined, color: Colors.white, size: 22),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Estimated Waiting Time',
-                  style: TextStyle(fontSize: 11, color: AgrivaColors.textMuted),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '$wait mins',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Live Queue Position',
+                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AgrivaColors.primaryDark),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 2),
+                  Text(
+                    position <= 0 ? 'Checked in — Preparing token call' : 'Token #$position of $total in line',
+                    style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AgrivaColors.primary),
+                  ),
+                  Text(
+                    'Estimated wait: ~$wait mins • Tap for live token monitor',
+                    style: const TextStyle(fontSize: 11, color: AgrivaColors.textSecondary),
+                  ),
+                ],
+              ),
             ),
-          ),
+            const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AgrivaColors.primary),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
@@ -369,27 +700,26 @@ class _MiniStat extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 11, color: AgrivaColors.textMuted),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-        ),
+        Text(label, style: const TextStyle(fontSize: 11, color: AgrivaColors.textMuted, fontWeight: FontWeight.w500)),
+        const SizedBox(height: 3),
+        Text(value, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimary)),
       ],
     );
   }
 }
 
-class _QuickAction extends StatelessWidget {
+class _ActionCard extends StatelessWidget {
   final IconData icon;
-  final String label;
+  final String title;
+  final String subtitle;
+  final Color accentColor;
   final VoidCallback onTap;
-  const _QuickAction({
+
+  const _ActionCard({
     required this.icon,
-    required this.label,
+    required this.title,
+    required this.subtitle,
+    required this.accentColor,
     required this.onTap,
   });
 
@@ -397,31 +727,41 @@ class _QuickAction extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(color: AgrivaColors.border),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, size: 20, color: AgrivaColors.primary),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
             ),
-            const Icon(
-              Icons.chevron_right,
-              size: 18,
-              color: AgrivaColors.textMuted,
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: accentColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: accentColor, size: 22),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimary),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              subtitle,
+              style: const TextStyle(fontSize: 11, color: AgrivaColors.textSecondary),
             ),
           ],
         ),
