@@ -79,10 +79,10 @@ class DemoControlsScreen extends ConsumerWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
-                        color: AgrivaColors.textSecondary,
+                        color: AgrivaColors.textSecondaryFor(context),
                         letterSpacing: 0.3,
                       ),
                     ),
@@ -123,9 +123,9 @@ class DemoControlsScreen extends ConsumerWidget {
                     if (targetBooking != null)
                       Text(
                         'Target booking: ${targetBooking.id} (M. Palanisamy, Token ${targetBooking.token})',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: AgrivaColors.textSecondary,
+                          color: AgrivaColors.textSecondaryFor(context),
                         ),
                       ),
                     const SizedBox(height: 12),

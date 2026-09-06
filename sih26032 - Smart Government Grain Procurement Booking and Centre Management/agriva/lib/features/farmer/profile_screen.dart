@@ -38,9 +38,9 @@ class ProfileScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AgrivaColors.surfaceFor(context),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AgrivaColors.border),
+                    border: Border.all(color: AgrivaColors.borderFor(context)),
                   ),
                   child: Column(
                     children: [
@@ -56,7 +56,7 @@ class ProfileScreen extends ConsumerWidget {
                       ),
                       Text(
                         farmer.farmerCode,
-                        style: const TextStyle(fontSize: 13, color: AgrivaColors.textSecondary),
+                        style: TextStyle(fontSize: 13, color: AgrivaColors.textSecondaryFor(context)),
                       ),
                     ],
                   ),
@@ -150,15 +150,15 @@ class _InfoTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AgrivaColors.surfaceFor(context),
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AgrivaColors.border),
+          border: Border.all(color: AgrivaColors.borderFor(context)),
         ),
         child: Row(
           children: [
-            Icon(icon, size: 18, color: AgrivaColors.textSecondary),
+            Icon(icon, size: 18, color: AgrivaColors.textSecondaryFor(context)),
             const SizedBox(width: 12),
-            Text(label, style: const TextStyle(fontSize: 13, color: AgrivaColors.textSecondary)),
+            Text(label, style: TextStyle(fontSize: 13, color: AgrivaColors.textSecondaryFor(context))),
             const SizedBox(width: 8),
             Expanded(
               child: Text(

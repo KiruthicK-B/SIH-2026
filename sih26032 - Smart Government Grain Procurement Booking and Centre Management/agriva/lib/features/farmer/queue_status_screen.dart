@@ -136,14 +136,18 @@ class _QueueBody extends ConsumerWidget {
                 decoration: const BoxDecoration(shape: BoxShape.circle, color: AgrivaColors.success),
               ),
               const SizedBox(width: 6),
-              Text(
-                'Centre Status: ${centre?.status.label ?? 'Open'}',
-                style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+              Expanded(
+                child: Text(
+                  'Centre Status: ${centre?.status.label ?? 'Open'}',
+                  style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-              const Spacer(),
-              const Text(
+              const SizedBox(width: 8),
+              Text(
                 'Live IoT Sync: Active',
-                style: TextStyle(fontSize: 11, color: AgrivaColors.textMuted),
+                style: TextStyle(fontSize: 11, color: AgrivaColors.textMutedFor(context)),
               ),
             ],
           ),
@@ -183,14 +187,14 @@ class _QueueBody extends ConsumerWidget {
               return Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AgrivaColors.surfaceFor(context),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AgrivaColors.border),
+                  border: Border.all(color: AgrivaColors.borderFor(context)),
                 ),
-                child: const Center(
+                child: Center(
                   child: Text(
                     'No other farmers currently waiting in yard queue.',
-                    style: TextStyle(fontSize: 12.5, color: AgrivaColors.textSecondary),
+                    style: TextStyle(fontSize: 12.5, color: AgrivaColors.textSecondaryFor(context)),
                   ),
                 ),
               );
@@ -198,9 +202,9 @@ class _QueueBody extends ConsumerWidget {
 
             return Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AgrivaColors.surfaceFor(context),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AgrivaColors.border),
+                border: Border.all(color: AgrivaColors.borderFor(context)),
               ),
               child: Column(
                 children: [
@@ -217,13 +221,15 @@ class _QueueBody extends ConsumerWidget {
           },
         ),
         const SizedBox(height: 12),
-        const Row(
+        Row(
           children: [
-            Icon(Icons.info_outline, size: 14, color: AgrivaColors.textMuted),
-            SizedBox(width: 4),
-            Text(
-              'Tokens advance automatically upon lane weighbridge completion.',
-              style: TextStyle(fontSize: 11, color: AgrivaColors.textMuted),
+            Icon(Icons.info_outline, size: 14, color: AgrivaColors.textMutedFor(context)),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Text(
+                'Tokens advance automatically upon lane weighbridge completion.',
+                style: TextStyle(fontSize: 11, color: AgrivaColors.textMutedFor(context)),
+              ),
             ),
           ],
         ),
@@ -244,9 +250,9 @@ class _BookingHeaderCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AgrivaColors.surfaceFor(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AgrivaColors.border),
+        border: Border.all(color: AgrivaColors.borderFor(context)),
         boxShadow: const [
           BoxShadow(
             color: Color(0x08000000),
@@ -296,14 +302,18 @@ class _BookingHeaderCard extends StatelessWidget {
           const SizedBox(height: 4),
           Row(
             children: [
-              const Icon(Icons.receipt_long_outlined, size: 14, color: AgrivaColors.textSecondary),
+              Icon(Icons.receipt_long_outlined, size: 14, color: AgrivaColors.textSecondaryFor(context)),
               const SizedBox(width: 4),
-              Text(
-                'Booking Ref: ${booking.id}',
-                style: const TextStyle(fontSize: 12, color: AgrivaColors.textSecondary),
+              Expanded(
+                child: Text(
+                  'Booking Ref: ${booking.id}',
+                  style: TextStyle(fontSize: 12, color: AgrivaColors.textSecondaryFor(context)),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-              const Spacer(),
-              const Icon(Icons.scale_outlined, size: 14, color: AgrivaColors.textSecondary),
+              const SizedBox(width: 8),
+              Icon(Icons.scale_outlined, size: 14, color: AgrivaColors.textSecondaryFor(context)),
               const SizedBox(width: 4),
               Text(
                 'Expected: ${booking.expectedQuantityQ.toStringAsFixed(0)} Quintals',
@@ -415,9 +425,9 @@ class _ProcurementLifecycleStepper extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AgrivaColors.surfaceFor(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AgrivaColors.border),
+        border: Border.all(color: AgrivaColors.borderFor(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -516,7 +526,7 @@ class _StageStepRow extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: isCurrent ? FontWeight.w800 : FontWeight.w600,
-                          color: isCurrent ? AgrivaColors.primaryDark : AgrivaColors.textPrimary,
+                          color: isCurrent ? AgrivaColors.primaryDark : AgrivaColors.textPrimaryFor(context),
                         ),
                       ),
                       if (isCurrent) ...[
@@ -542,7 +552,7 @@ class _StageStepRow extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: const TextStyle(fontSize: 11.5, color: AgrivaColors.textSecondary),
+                    style: TextStyle(fontSize: 11.5, color: AgrivaColors.textSecondaryFor(context)),
                   ),
                 ],
               ),
@@ -666,9 +676,9 @@ class _DemoStageAdvanceCard extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AgrivaColors.surface,
+        color: AgrivaColors.surfaceFor(context),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AgrivaColors.border),
+        border: Border.all(color: AgrivaColors.borderFor(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -791,23 +801,26 @@ class _QueueRow extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: isYou ? AgrivaColors.primaryLight.withValues(alpha: 0.5) : null,
-        border: isLast ? null : const Border(bottom: BorderSide(color: AgrivaColors.border)),
+        border: isLast ? null : Border(bottom: BorderSide(color: AgrivaColors.borderFor(context))),
       ),
       child: Row(
         children: [
           SizedBox(
             width: 24,
-            child: Text('$index', style: const TextStyle(fontSize: 12, color: AgrivaColors.textMuted)),
+            child: Text('$index', style: TextStyle(fontSize: 12, color: AgrivaColors.textMutedFor(context))),
           ),
           Expanded(
             child: Text(
               isYou ? '${farmer?.name ?? '—'} (You • Token ${booking.token})' : (farmer?.name ?? '—'),
               style: TextStyle(fontSize: 13, fontWeight: isYou ? FontWeight.w700 : FontWeight.w500),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
+          const SizedBox(width: 6),
           Text(
             '${booking.expectedQuantityQ.toStringAsFixed(0)} Q',
-            style: const TextStyle(fontSize: 12.5, color: AgrivaColors.textSecondary),
+            style: TextStyle(fontSize: 12.5, color: AgrivaColors.textSecondaryFor(context)),
           ),
           const SizedBox(width: 10),
           StatusBadge(label: _displayStatus(entry.stage), tone: _displayTone(entry.stage)),

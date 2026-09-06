@@ -9,6 +9,8 @@ class QueueEntry {
   final int queuePosition;
   final DateTime? estimatedCallTime;
   final DateTime? actualCallTime;
+  final bool isPriority;
+  final bool skipped;
 
   const QueueEntry({
     required this.id,
@@ -19,6 +21,8 @@ class QueueEntry {
     this.queuePosition = 0,
     this.estimatedCallTime,
     this.actualCallTime,
+    this.isPriority = false,
+    this.skipped = false,
   });
 
   QueueEntry copyWith({
@@ -26,6 +30,8 @@ class QueueEntry {
     int? queuePosition,
     DateTime? estimatedCallTime,
     DateTime? actualCallTime,
+    bool? isPriority,
+    bool? skipped,
   }) => QueueEntry(
     id: id,
     bookingId: bookingId,
@@ -35,6 +41,8 @@ class QueueEntry {
     queuePosition: queuePosition ?? this.queuePosition,
     estimatedCallTime: estimatedCallTime ?? this.estimatedCallTime,
     actualCallTime: actualCallTime ?? this.actualCallTime,
+    isPriority: isPriority ?? this.isPriority,
+    skipped: skipped ?? this.skipped,
   );
 
   factory QueueEntry.fromJson(Map<String, dynamic> json) => QueueEntry(
@@ -50,6 +58,8 @@ class QueueEntry {
     actualCallTime: json['actualCallTime'] != null
         ? DateTime.parse(json['actualCallTime'] as String)
         : null,
+    isPriority: json['isPriority'] as bool? ?? false,
+    skipped: json['skipped'] as bool? ?? false,
   );
 
   Map<String, dynamic> toJson() => {
@@ -61,5 +71,7 @@ class QueueEntry {
     'queuePosition': queuePosition,
     'estimatedCallTime': estimatedCallTime?.toIso8601String(),
     'actualCallTime': actualCallTime?.toIso8601String(),
+    'isPriority': isPriority,
+    'skipped': skipped,
   };
 }

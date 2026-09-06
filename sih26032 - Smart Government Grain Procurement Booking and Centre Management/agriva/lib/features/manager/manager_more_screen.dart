@@ -28,7 +28,7 @@ class ManagerMoreScreen extends ConsumerWidget {
         : '${districtName[0].toUpperCase()}${districtName.substring(1)} District';
 
     return Scaffold(
-      backgroundColor: AgrivaColors.background,
+      backgroundColor: AgrivaColors.backgroundFor(context),
       appBar: const AgrivaAppBar(title: 'Account'),
       body: MaxWidthBody(
         child: ListView(
@@ -38,9 +38,9 @@ class ManagerMoreScreen extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AgrivaColors.surfaceFor(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AgrivaColors.border),
+                border: Border.all(color: AgrivaColors.borderFor(context)),
               ),
               child: Column(
                 children: [
@@ -57,7 +57,7 @@ class ManagerMoreScreen extends ConsumerWidget {
                   const SizedBox(height: 2),
                   Text(
                     'District Collector & Magistrate • $formattedDistrict',
-                    style: const TextStyle(fontSize: 13, color: AgrivaColors.textSecondary),
+                    style: TextStyle(fontSize: 13, color: AgrivaColors.textSecondaryFor(context)),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
@@ -110,15 +110,15 @@ class ManagerMoreScreen extends ConsumerWidget {
             // District Shortcuts
             Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AgrivaColors.surfaceFor(context),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AgrivaColors.border),
+                border: Border.all(color: AgrivaColors.borderFor(context)),
               ),
               child: ListTile(
                 leading: const Icon(Icons.verified_user_outlined, color: AgrivaColors.primary),
                 title: const Text('Farmer Document Verifications', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
-                subtitle: const Text('Review Aadhaar & land records for approval', style: TextStyle(fontSize: 11, color: AgrivaColors.textMuted)),
-                trailing: const Icon(Icons.chevron_right, size: 18, color: AgrivaColors.textMuted),
+                subtitle: Text('Review Aadhaar & land records for approval', style: TextStyle(fontSize: 11, color: AgrivaColors.textMutedFor(context))),
+                trailing: Icon(Icons.chevron_right, size: 18, color: AgrivaColors.textMutedFor(context)),
                 onTap: () => context.push('/district-admin/verifications'),
               ),
             ),
@@ -197,15 +197,15 @@ class _InfoTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AgrivaColors.surfaceFor(context),
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AgrivaColors.border),
+          border: Border.all(color: AgrivaColors.borderFor(context)),
         ),
         child: Row(
           children: [
-            Icon(icon, size: 18, color: AgrivaColors.textSecondary),
+            Icon(icon, size: 18, color: AgrivaColors.textSecondaryFor(context)),
             const SizedBox(width: 12),
-            Text(label, style: const TextStyle(fontSize: 13, color: AgrivaColors.textSecondary)),
+            Text(label, style: TextStyle(fontSize: 13, color: AgrivaColors.textSecondaryFor(context))),
             const SizedBox(width: 8),
             Expanded(
               child: Text(

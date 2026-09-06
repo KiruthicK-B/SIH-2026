@@ -126,7 +126,7 @@ class OperatorDashboardScreen extends ConsumerWidget {
                         const Spacer(),
                         Text(
                           DateFormat('d MMM yyyy').format(today),
-                          style: const TextStyle(fontSize: 12, color: AgrivaColors.textSecondary),
+                          style: TextStyle(fontSize: 12, color: AgrivaColors.textSecondaryFor(context)),
                         ),
                       ],
                     ),
@@ -172,22 +172,22 @@ class OperatorDashboardScreen extends ConsumerWidget {
                               decoration: BoxDecoration(
                                 color: AgrivaColors.primaryLight50,
                                 borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: AgrivaColors.border),
+                                border: Border.all(color: AgrivaColors.borderFor(context)),
                               ),
                               child: Row(
-                                children: const [
-                                  Icon(Icons.verified_user_outlined, color: AgrivaColors.primary, size: 20),
-                                  SizedBox(width: 8),
+                                children: [
+                                  const Icon(Icons.verified_user_outlined, color: AgrivaColors.primary, size: 20),
+                                  const SizedBox(width: 8),
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text('Farmer Approvals', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
-                                        Text('Verify registered farmers', style: TextStyle(fontSize: 10.5, color: AgrivaColors.textSecondary)),
+                                        const Text('Farmer Approvals', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                                        Text('Verify registered farmers', style: TextStyle(fontSize: 10.5, color: AgrivaColors.textSecondaryFor(context))),
                                       ],
                                     ),
                                   ),
-                                  Icon(Icons.arrow_forward_ios_rounded, size: 12, color: AgrivaColors.primary),
+                                  const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: AgrivaColors.primary),
                                 ],
                               ),
                             ),
@@ -206,19 +206,19 @@ class OperatorDashboardScreen extends ConsumerWidget {
                                 border: Border.all(color: AgrivaColors.gold.withValues(alpha: 0.3)),
                               ),
                               child: Row(
-                                children: const [
-                                  Icon(Icons.tune_rounded, color: AgrivaColors.gold, size: 20),
-                                  SizedBox(width: 8),
+                                children: [
+                                  const Icon(Icons.tune_rounded, color: AgrivaColors.gold, size: 20),
+                                  const SizedBox(width: 8),
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text('Centre Capacity', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: Color(0xFF8D6E63))),
-                                        Text('Edit daily & slot quota', style: TextStyle(fontSize: 10.5, color: AgrivaColors.textSecondary)),
+                                        const Text('Centre Capacity', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: Color(0xFF8D6E63))),
+                                        Text('Edit daily & slot quota', style: TextStyle(fontSize: 10.5, color: AgrivaColors.textSecondaryFor(context))),
                                       ],
                                     ),
                                   ),
-                                  Icon(Icons.edit_rounded, size: 12, color: Color(0xFF8D6E63)),
+                                  const Icon(Icons.edit_rounded, size: 12, color: Color(0xFF8D6E63)),
                                 ],
                               ),
                             ),
@@ -240,9 +240,9 @@ class OperatorDashboardScreen extends ConsumerWidget {
                     const SizedBox(height: 8),
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AgrivaColors.surfaceFor(context),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AgrivaColors.border),
+                        border: Border.all(color: AgrivaColors.borderFor(context)),
                       ),
                       child: Column(
                         children: [
@@ -291,7 +291,7 @@ class _ScheduleRow extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        border: isLast ? null : const Border(bottom: BorderSide(color: AgrivaColors.border)),
+        border: isLast ? null : Border(bottom: BorderSide(color: AgrivaColors.borderFor(context))),
       ),
       child: Row(
         children: [
@@ -303,10 +303,10 @@ class _ScheduleRow extends ConsumerWidget {
             ),
           ),
           Expanded(
-            child: Text('$booked/${slot.maxFarmers}', style: const TextStyle(fontSize: 12.5, color: AgrivaColors.textSecondary)),
+            child: Text('$booked/${slot.maxFarmers}', style: TextStyle(fontSize: 12.5, color: AgrivaColors.textSecondaryFor(context))),
           ),
           Expanded(
-            child: Text('${bookedQ.toStringAsFixed(0)} Q', style: const TextStyle(fontSize: 12.5, color: AgrivaColors.textSecondary)),
+            child: Text('${bookedQ.toStringAsFixed(0)} Q', style: TextStyle(fontSize: 12.5, color: AgrivaColors.textSecondaryFor(context))),
           ),
           StatusBadge(label: label, tone: tone),
         ],

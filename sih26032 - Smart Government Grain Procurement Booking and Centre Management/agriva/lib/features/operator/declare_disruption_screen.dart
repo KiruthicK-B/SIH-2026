@@ -71,7 +71,7 @@ class _DeclareDisruptionScreenState extends ConsumerState<DeclareDisruptionScree
                                 Text(d.type.label, style: const TextStyle(fontWeight: FontWeight.w700)),
                                 Text(
                                   'Expected resolution: ${DateFormat('h:mm a').format(d.expectedResolution)}',
-                                  style: const TextStyle(fontSize: 12, color: AgrivaColors.textSecondary),
+                                  style: TextStyle(fontSize: 12, color: AgrivaColors.textSecondaryFor(context)),
                                 ),
                               ],
                             ),
@@ -92,12 +92,12 @@ class _DeclareDisruptionScreenState extends ConsumerState<DeclareDisruptionScree
                 ],
                 const Text('Declare Disruption', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 12),
-                Text(centre.name, style: const TextStyle(color: AgrivaColors.textSecondary)),
+                Text(centre.name, style: TextStyle(color: AgrivaColors.textSecondaryFor(context))),
                 const SizedBox(height: 16),
                 const Text('Reason', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 6),
                 Container(
-                  decoration: BoxDecoration(border: Border.all(color: AgrivaColors.border), borderRadius: BorderRadius.circular(8)),
+                  decoration: BoxDecoration(border: Border.all(color: AgrivaColors.borderFor(context)), borderRadius: BorderRadius.circular(8)),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<DisruptionType>(
                       value: _type,

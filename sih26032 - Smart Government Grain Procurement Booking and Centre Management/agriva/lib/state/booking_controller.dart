@@ -25,6 +25,28 @@ import 'op_result.dart';
 // UI refreshes automatically after any controller mutation.
 // ---------------------------------------------------------------------
 
+const _queueServiceForProviders = QueueService();
+
+/// A queue entry pre-resolved with its booking, farmer, live position, and
+/// ETA — what the operator queue screen actually renders per row. Built once
+/// per fetch instead of each row doing its own nested provider lookups, so
+/// search/filter has synchronous data to match against.
+class QueueRowView {
+  final QueueEntry entry;
+  final Booking booking;
+  final Farmer? farmer;
+  final int position;
+  final int etaMinutes;
+
+  const QueueRowView({
+    required this.entry,
+    required this.booking,
+    required this.farmer,
+    required this.position,
+    required this.etaMinutes,
+  });
+}
+
 final centresProvider = FutureProvider<List<ProcurementCentre>>((ref) {
   ref.watch(dataRevisionProvider);
   return ref.read(centreRepositoryProvider).getAll();
@@ -148,8 +170,9 @@ final queueTotalForCentreProvider = FutureProvider.family<int, String>((
   return entries.length;
 });
 
-/// Active (not completed/exception) queue entries for a centre, in arrival
-/// order — this ordering IS the queue (README §6).
+/// Active (not completed/exception) queue entries for a centre, ordered by
+/// [QueueService.activeQueueForCentre] (skip/priority/manual-position aware)
+/// — this ordering IS the queue (README §6).
 final activeQueueEntriesForCentreProvider =
     FutureProvider.family<List<QueueEntry>, String>((ref, centreId) async {
       ref.watch(dataRevisionProvider);
@@ -159,16 +182,45 @@ final activeQueueEntriesForCentreProvider =
           .map((b) => b.id)
           .toSet();
       final entries = await ref.read(queueRepositoryProvider).getAll();
-      final active = entries
-          .where(
-            (q) =>
-                centreBookingIds.contains(q.bookingId) &&
-                q.stage != QueueStage.completed &&
-                q.stage != QueueStage.exception,
-          )
-          .toList()
-        ..sort((a, b) => a.enteredAt.compareTo(b.enteredAt));
-      return active;
+      return _queueServiceForProviders.activeQueueForCentre(entries, centreBookingIds);
+    });
+
+/// Same active-queue ordering as above, but each entry pre-resolved with its
+/// booking, farmer, 1-based position, and live ETA — see [QueueRowView].
+final queueRowsForCentreProvider =
+    FutureProvider.family<List<QueueRowView>, String>((ref, centreId) async {
+      ref.watch(dataRevisionProvider);
+      final centre = await ref.read(centreRepositoryProvider).getById(centreId);
+      final bookings = await ref.read(bookingRepositoryProvider).forCentre(centreId);
+      final bookingsById = {for (final b in bookings) b.id: b};
+      final entries = await ref.read(queueRepositoryProvider).getAll();
+      final active = _queueServiceForProviders.activeQueueForCentre(
+        entries,
+        bookingsById.keys.toSet(),
+      );
+      final lanes = centre?.processingLanesActive ?? 1;
+      final farmerRepo = ref.read(farmerRepositoryProvider);
+      final rows = <QueueRowView>[];
+      for (var i = 0; i < active.length; i++) {
+        final entry = active[i];
+        final booking = bookingsById[entry.bookingId];
+        if (booking == null) continue;
+        final farmer = await farmerRepo.getById(booking.farmerId);
+        final position = i + 1;
+        rows.add(
+          QueueRowView(
+            entry: entry,
+            booking: booking,
+            farmer: farmer,
+            position: position,
+            etaMinutes: _queueServiceForProviders.calculateEstimatedWait(
+              queuePosition: position,
+              activeLanes: lanes,
+            ),
+          ),
+        );
+      }
+      return rows;
     });
 
 /// Every queue entry for a centre today, arrival-ordered — matches a real
@@ -617,6 +669,16 @@ class BookingController {
     await _bookingRepo.save(
       booking.copyWith(status: BookingStatus.inQueue, checkedInAt: DateTime.now()),
     );
+    final centreBookingIds = (await _bookingRepo.forCentre(booking.centreId))
+        .map((b) => b.id)
+        .toSet();
+    final active = _queue.activeQueueForCentre(
+      await _queueRepo.getAll(),
+      centreBookingIds,
+    );
+    final nextPosition = active.isEmpty
+        ? 1
+        : active.map((e) => e.queuePosition).reduce((a, b) => a > b ? a : b) + 1;
     await _queueRepo.save(
       QueueEntry(
         id: 'q-${DateTime.now().microsecondsSinceEpoch}',
@@ -624,10 +686,61 @@ class BookingController {
         token: booking.token,
         stage: QueueStage.arrived,
         enteredAt: DateTime.now(),
+        queuePosition: nextPosition,
       ),
     );
     _bump();
     return const OpResult(true, 'Farmer checked in and added to the queue.');
+  }
+
+  /// Toggles priority — priority entries sort ahead of normal ones (see
+  /// [QueueService.activeQueueForCentre]) regardless of arrival order.
+  Future<OpResult> setQueuePriority(String bookingId, bool priority) async {
+    final entry = await _queueRepo.forBooking(bookingId);
+    if (entry == null) return const OpResult(false, 'Queue entry not found.');
+    await _queueRepo.save(entry.copyWith(isPriority: priority));
+    _bump();
+    return OpResult(true, priority ? 'Marked as priority.' : 'Priority removed.');
+  }
+
+  /// Skip sends a token to the back of the queue without removing it (the
+  /// booking stays checked-in); Recall (skipped: false) brings it back into
+  /// normal position ordering.
+  Future<OpResult> setQueueSkipped(String bookingId, bool skipped) async {
+    final entry = await _queueRepo.forBooking(bookingId);
+    if (entry == null) return const OpResult(false, 'Queue entry not found.');
+    await _queueRepo.save(entry.copyWith(skipped: skipped));
+    _bump();
+    return OpResult(
+      true,
+      skipped ? 'Token skipped — moved to back of queue.' : 'Token recalled to the queue.',
+    );
+  }
+
+  /// Adjacent-swap manual reorder: swaps this entry's `queuePosition` with
+  /// whichever entry is immediately above/below it in the currently-sorted
+  /// active queue.
+  Future<OpResult> reorderQueueEntry(
+    String centreId,
+    String bookingId, {
+    required bool moveUp,
+  }) async {
+    final centreBookingIds = (await _bookingRepo.forCentre(centreId))
+        .map((b) => b.id)
+        .toSet();
+    final active = _queue.activeQueueForCentre(await _queueRepo.getAll(), centreBookingIds);
+    final idx = active.indexWhere((e) => e.bookingId == bookingId);
+    if (idx == -1) return const OpResult(false, 'Queue entry not found.');
+    final swapIdx = moveUp ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= active.length) {
+      return const OpResult(false, 'Already at the edge of the queue.');
+    }
+    final a = active[idx];
+    final b = active[swapIdx];
+    await _queueRepo.save(a.copyWith(queuePosition: b.queuePosition));
+    await _queueRepo.save(b.copyWith(queuePosition: a.queuePosition));
+    _bump();
+    return const OpResult(true, 'Queue order updated.');
   }
 
   Future<OpResult> moveQueueStage(String bookingId, QueueStage newStage) async {

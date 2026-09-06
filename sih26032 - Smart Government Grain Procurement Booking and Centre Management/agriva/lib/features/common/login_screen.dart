@@ -165,7 +165,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final currentLocale = ref.watch(localeControllerProvider) ?? const Locale('en');
 
     return Scaffold(
-      backgroundColor: AgrivaColors.background,
+      backgroundColor: AgrivaColors.backgroundFor(context),
       body: SafeArea(
         child: Column(
           children: [
@@ -261,12 +261,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
           ),
           const SizedBox(width: 10),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
+                const Text(
                   'GOVERNMENT OF INDIA',
                   style: TextStyle(
                     fontSize: 9.5,
@@ -280,7 +280,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   style: TextStyle(
                     fontSize: 10.5,
                     fontWeight: FontWeight.w600,
-                    color: AgrivaColors.textSecondary,
+                    color: AgrivaColors.textSecondaryFor(context),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -305,7 +305,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       localeDisplayNames[l.languageCode] ?? l.languageCode,
                       style: TextStyle(
                         fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                        color: isSelected ? AgrivaColors.primary : AgrivaColors.textPrimary,
+                        color: isSelected ? AgrivaColors.primary : AgrivaColors.textPrimaryFor(context),
                       ),
                     ),
                     if (isSelected) ...[
@@ -321,7 +321,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               decoration: BoxDecoration(
                 color: AgrivaColors.primaryLight50,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AgrivaColors.border),
+                border: Border.all(color: AgrivaColors.borderFor(context)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -437,14 +437,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text(
+        Text(
           'Farmer Login',
-          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimary),
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimaryFor(context)),
         ),
         const SizedBox(height: 2),
-        const Text(
+        Text(
           'Enter your 10-digit registered mobile number to continue.',
-          style: TextStyle(fontSize: 12, color: AgrivaColors.textSecondary),
+          style: TextStyle(fontSize: 12, color: AgrivaColors.textSecondaryFor(context)),
         ),
         const SizedBox(height: 14),
 
@@ -457,17 +457,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           prefix: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10),
             margin: const EdgeInsets.only(right: 8),
-            decoration: const BoxDecoration(
-              border: Border(right: BorderSide(color: AgrivaColors.border, width: 1)),
+            decoration: BoxDecoration(
+              border: Border(right: BorderSide(color: AgrivaColors.borderFor(context), width: 1)),
             ),
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('🇮🇳', style: TextStyle(fontSize: 16)),
-                SizedBox(width: 6),
+                const Text('🇮🇳', style: TextStyle(fontSize: 16)),
+                const SizedBox(width: 6),
                 Text(
                   '+91',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimary),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimaryFor(context)),
                 ),
               ],
             ),
@@ -543,14 +543,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text(
+        Text(
           'Centre Operator Login',
-          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimary),
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimaryFor(context)),
         ),
         const SizedBox(height: 2),
-        const Text(
+        Text(
           'Official login for Tamil Nadu grain procurement centres.',
-          style: TextStyle(fontSize: 12, color: AgrivaColors.textSecondary),
+          style: TextStyle(fontSize: 12, color: AgrivaColors.textSecondaryFor(context)),
         ),
         const SizedBox(height: 14),
 
@@ -573,7 +573,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             icon: Icon(
               _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
               size: 20,
-              color: AgrivaColors.textSecondary,
+              color: AgrivaColors.textSecondaryFor(context),
             ),
             onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
           ),
@@ -601,7 +601,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             onPressed: _forgotPassword,
             child: Text(
               l10n.forgotPassword,
-              style: const TextStyle(fontSize: 12, color: AgrivaColors.textSecondary),
+              style: TextStyle(fontSize: 12, color: AgrivaColors.textSecondaryFor(context)),
             ),
           ),
         ),
@@ -653,14 +653,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text(
+        Text(
           'District Admin Login',
-          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimary),
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimaryFor(context)),
         ),
         const SizedBox(height: 2),
-        const Text(
+        Text(
           'Official login for District Grain Procurement Administration.',
-          style: TextStyle(fontSize: 12, color: AgrivaColors.textSecondary),
+          style: TextStyle(fontSize: 12, color: AgrivaColors.textSecondaryFor(context)),
         ),
         const SizedBox(height: 14),
 
@@ -683,7 +683,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             icon: Icon(
               _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
               size: 20,
-              color: AgrivaColors.textSecondary,
+              color: AgrivaColors.textSecondaryFor(context),
             ),
             onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
           ),
@@ -711,7 +711,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             onPressed: _forgotPassword,
             child: Text(
               l10n.forgotPassword,
-              style: const TextStyle(fontSize: 12, color: AgrivaColors.textSecondary),
+              style: TextStyle(fontSize: 12, color: AgrivaColors.textSecondaryFor(context)),
             ),
           ),
         ),
@@ -763,14 +763,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text(
+        Text(
           'State Admin Login',
-          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimary),
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimaryFor(context)),
         ),
         const SizedBox(height: 2),
-        const Text(
+        Text(
           'Tamil Nadu State Grain Procurement & Policy Directorate.',
-          style: TextStyle(fontSize: 12, color: AgrivaColors.textSecondary),
+          style: TextStyle(fontSize: 12, color: AgrivaColors.textSecondaryFor(context)),
         ),
         const SizedBox(height: 14),
 
@@ -793,7 +793,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             icon: Icon(
               _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
               size: 20,
-              color: AgrivaColors.textSecondary,
+              color: AgrivaColors.textSecondaryFor(context),
             ),
             onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
           ),
@@ -821,7 +821,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             onPressed: _forgotPassword,
             child: Text(
               l10n.forgotPassword,
-              style: const TextStyle(fontSize: 12, color: AgrivaColors.textSecondary),
+              style: TextStyle(fontSize: 12, color: AgrivaColors.textSecondaryFor(context)),
             ),
           ),
         ),
@@ -963,14 +963,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Widget _buildPortalFooter() {
-    return const Row(
+    return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(Icons.shield_outlined, size: 13, color: AgrivaColors.textMuted),
-        SizedBox(width: 5),
+        Icon(Icons.shield_outlined, size: 13, color: AgrivaColors.textMutedFor(context)),
+        const SizedBox(width: 5),
         Text(
           'National Informatics Centre & DoCA Infrastructure',
-          style: TextStyle(fontSize: 10.5, color: AgrivaColors.textMuted),
+          style: TextStyle(fontSize: 10.5, color: AgrivaColors.textMutedFor(context)),
         ),
       ],
     );

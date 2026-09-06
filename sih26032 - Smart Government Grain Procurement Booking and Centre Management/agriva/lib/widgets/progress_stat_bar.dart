@@ -38,19 +38,23 @@ class ProgressStatBar extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 13,
-                color: AgrivaColors.textSecondary,
+            Flexible(
+              child: Text(
+                label,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: AgrivaColors.textSecondaryFor(context),
+                ),
               ),
             ),
+            const SizedBox(width: 8),
             Text(
               '${fmt(current)} / ${fmt(max)}',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: AgrivaColors.textPrimary,
+                color: AgrivaColors.textPrimaryFor(context),
               ),
             ),
           ],
@@ -68,7 +72,7 @@ class ProgressStatBar extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           '${(percent * 100).toStringAsFixed(0)}% occupied',
-          style: const TextStyle(fontSize: 11, color: AgrivaColors.textMuted),
+          style: TextStyle(fontSize: 11, color: AgrivaColors.textMutedFor(context)),
         ),
       ],
     );

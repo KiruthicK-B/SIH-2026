@@ -6,9 +6,9 @@ import '../../app/theme.dart';
 import '../../core/utils/list_extensions.dart';
 import '../../models/booking.dart';
 import '../../models/enums.dart';
-import '../../models/queue_entry.dart';
 import '../../state/auth_controller.dart';
 import '../../state/booking_controller.dart';
+import '../../state/op_result.dart';
 import '../../widgets/agriva_app_bar.dart';
 import '../../widgets/app_states.dart';
 import '../../widgets/status_badge.dart';
@@ -23,6 +23,14 @@ class OperatorQueueScreen extends ConsumerStatefulWidget {
 
 class _OperatorQueueScreenState extends ConsumerState<OperatorQueueScreen> {
   bool _held = false;
+  final _searchController = TextEditingController();
+  String _search = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,19 +41,29 @@ class _OperatorQueueScreenState extends ConsumerState<OperatorQueueScreen> {
     final centreId = (userCentre != null && userCentre.isNotEmpty)
         ? userCentre
         : (allCentres.isNotEmpty ? allCentres.first.id : 'centre-erode-01');
-    final activeEntriesAsync = ref.watch(activeQueueEntriesForCentreProvider(centreId));
+    final rowsAsync = ref.watch(queueRowsForCentreProvider(centreId));
     final bookingsAsync = ref.watch(bookingsForCentreProvider(centreId));
 
     return Scaffold(
       appBar: const AgrivaAppBar(title: 'Queue Management'),
       body: MaxWidthBody(
-        child: activeEntriesAsync.when(
+        child: rowsAsync.when(
           loading: () => const LoadingState(),
           error: (e, st) => const ErrorState(),
-          data: (activeEntries) {
+          data: (rows) {
             final waiting = (bookingsAsync.value ?? const [])
                 .where((b) => b.centreId == centreId && b.status == BookingStatus.booked)
                 .toList();
+            final query = _search.trim().toLowerCase();
+            final visibleRows = query.isEmpty
+                ? rows
+                : rows
+                    .where(
+                      (r) =>
+                          r.booking.token.toLowerCase().contains(query) ||
+                          (r.farmer?.name.toLowerCase().contains(query) ?? false),
+                    )
+                    .toList();
 
             return Column(
               children: [
@@ -53,22 +71,39 @@ class _OperatorQueueScreenState extends ConsumerState<OperatorQueueScreen> {
                   padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
-                      Expanded(child: _Stat(label: 'Total in Queue', value: '${activeEntries.length}')),
-                      Container(width: 1, height: 40, color: AgrivaColors.border),
+                      Expanded(child: _Stat(label: 'Total in Queue', value: '${rows.length}')),
+                      Container(width: 1, height: 40, color: AgrivaColors.borderFor(context)),
                       Expanded(
-                        child: Consumer(
-                          builder: (context, ref, _) {
-                            final firstBookingId = activeEntries.firstOrNull?.bookingId ?? '';
-                            final wait = firstBookingId.isEmpty
-                                ? 0
-                                : ref.watch(estimatedWaitProvider(firstBookingId)).value ?? 0;
-                            return _Stat(label: 'Est. Time for Next', value: '$wait min');
-                          },
+                        child: _Stat(
+                          label: 'Est. Time for Next',
+                          value: '${rows.firstOrNull?.etaMinutes ?? 0} min',
                         ),
                       ),
                     ],
                   ),
                 ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (v) => setState(() => _search = v),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      hintText: 'Search by token or farmer name',
+                      prefixIcon: const Icon(Icons.search, size: 20),
+                      suffixIcon: _search.isEmpty
+                          ? null
+                          : IconButton(
+                              icon: const Icon(Icons.close, size: 18),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() => _search = '');
+                              },
+                            ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
                 if (_held)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -84,17 +119,20 @@ class _OperatorQueueScreenState extends ConsumerState<OperatorQueueScreen> {
                     ),
                   ),
                 Expanded(
-                  child: activeEntries.isEmpty
-                      ? const EmptyState(
+                  child: visibleRows.isEmpty
+                      ? EmptyState(
                           icon: Icons.groups_outlined,
-                          title: 'Queue is empty',
-                          message: 'Checked-in farmers will appear here.',
+                          title: rows.isEmpty ? 'Queue is empty' : 'No matches',
+                          message: rows.isEmpty
+                              ? 'Checked-in farmers will appear here.'
+                              : 'No queue entries match "$_search".',
                         )
                       : ListView.separated(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
-                          itemCount: activeEntries.length,
+                          itemCount: visibleRows.length,
                           separatorBuilder: (_, _) => const SizedBox(height: 8),
-                          itemBuilder: (context, i) => _QueueRowTile(entry: activeEntries[i], position: i + 1),
+                          itemBuilder: (context, i) =>
+                              _QueueRowCard(row: visibleRows[i], centreId: centreId),
                         ),
                 ),
                 SafeArea(
@@ -159,24 +197,24 @@ class _Stat extends StatelessWidget {
     return Column(
       children: [
         Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AgrivaColors.primaryDark)),
-        Text(label, style: const TextStyle(fontSize: 11, color: AgrivaColors.textSecondary)),
+        Text(label, style: TextStyle(fontSize: 11, color: AgrivaColors.textSecondaryFor(context))),
       ],
     );
   }
 }
 
-class _QueueRowTile extends ConsumerWidget {
-  final QueueEntry entry;
-  final int position;
-  const _QueueRowTile({required this.entry, required this.position});
+enum _QueueRowMenuAction { priorityOn, priorityOff, moveUp, moveDown, skip, recall, noShow }
+
+class _QueueRowCard extends ConsumerWidget {
+  final QueueRowView row;
+  final String centreId;
+  const _QueueRowCard({required this.row, required this.centreId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bookingAsync = ref.watch(bookingByIdProvider(entry.bookingId));
-    final booking = bookingAsync.value;
-    if (booking == null) return const SizedBox.shrink();
-    final farmerAsync = ref.watch(farmerByIdProvider(booking.farmerId));
-    final farmer = farmerAsync.value;
+    final entry = row.entry;
+    final booking = row.booking;
+    final farmer = row.farmer;
 
     String actionLabel;
     VoidCallback onAction;
@@ -195,35 +233,115 @@ class _QueueRowTile extends ConsumerWidget {
         onAction = () {};
     }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AgrivaColors.border),
-      ),
-      child: Row(
-        children: [
-          SizedBox(width: 20, child: Text('$position', style: const TextStyle(fontSize: 11, color: AgrivaColors.textMuted))),
-          Expanded(
-            flex: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    Future<void> runAction(Future<OpResult> Function() action) async {
+      final result = await action();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message)));
+      }
+    }
+
+    final controller = ref.read(bookingControllerProvider);
+
+    return Opacity(
+      opacity: entry.skipped ? 0.55 : 1,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: AgrivaColors.surfaceFor(context),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AgrivaColors.borderFor(context)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Text(
-                  '${booking.token} · ${farmer?.name ?? '—'}',
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                SizedBox(
+                  width: 22,
+                  child: Text(
+                    '${row.position}',
+                    style: TextStyle(fontSize: 11, color: AgrivaColors.textMutedFor(context)),
+                  ),
                 ),
-                Text('${booking.expectedQuantityQ.toStringAsFixed(0)} Q', style: const TextStyle(fontSize: 11.5, color: AgrivaColors.textSecondary)),
+                if (entry.isPriority) ...[
+                  const Icon(Icons.star_rounded, size: 16, color: AgrivaColors.gold),
+                  const SizedBox(width: 4),
+                ],
+                Expanded(
+                  child: Text(
+                    '${booking.token} · ${farmer?.name ?? '—'}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                      color: AgrivaColors.textPrimaryFor(context),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  entry.skipped ? 'Skipped' : '~${row.etaMinutes} min',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: entry.skipped ? AgrivaColors.warning : AgrivaColors.textMutedFor(context),
+                  ),
+                ),
               ],
             ),
-          ),
-          StatusBadge(label: entry.stage.label, tone: StatusTone.warning),
-          const SizedBox(width: 8),
-          TextButton(onPressed: onAction, child: Text(actionLabel)),
-        ],
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                const SizedBox(width: 22),
+                Text(
+                  '${booking.expectedQuantityQ.toStringAsFixed(0)} Q',
+                  style: TextStyle(fontSize: 11.5, color: AgrivaColors.textSecondaryFor(context)),
+                ),
+                const Spacer(),
+                StatusBadge(label: entry.stage.label, tone: StatusTone.warning),
+                const SizedBox(width: 4),
+                TextButton(onPressed: onAction, child: Text(actionLabel)),
+                PopupMenuButton<_QueueRowMenuAction>(
+                  icon: Icon(Icons.more_vert, size: 20, color: AgrivaColors.textMutedFor(context)),
+                  onSelected: (action) {
+                    switch (action) {
+                      case _QueueRowMenuAction.priorityOn:
+                        runAction(() => controller.setQueuePriority(booking.id, true));
+                      case _QueueRowMenuAction.priorityOff:
+                        runAction(() => controller.setQueuePriority(booking.id, false));
+                      case _QueueRowMenuAction.moveUp:
+                        runAction(() => controller.reorderQueueEntry(centreId, booking.id, moveUp: true));
+                      case _QueueRowMenuAction.moveDown:
+                        runAction(() => controller.reorderQueueEntry(centreId, booking.id, moveUp: false));
+                      case _QueueRowMenuAction.skip:
+                        runAction(() => controller.setQueueSkipped(booking.id, true));
+                      case _QueueRowMenuAction.recall:
+                        runAction(() => controller.setQueueSkipped(booking.id, false));
+                      case _QueueRowMenuAction.noShow:
+                        runAction(() => controller.markNoShow(booking.id));
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: entry.isPriority
+                          ? _QueueRowMenuAction.priorityOff
+                          : _QueueRowMenuAction.priorityOn,
+                      child: Text(entry.isPriority ? 'Remove priority' : 'Mark priority'),
+                    ),
+                    const PopupMenuItem(value: _QueueRowMenuAction.moveUp, child: Text('Move up')),
+                    const PopupMenuItem(value: _QueueRowMenuAction.moveDown, child: Text('Move down')),
+                    PopupMenuItem(
+                      value: entry.skipped ? _QueueRowMenuAction.recall : _QueueRowMenuAction.skip,
+                      child: Text(entry.skipped ? 'Recall to queue' : 'Skip'),
+                    ),
+                    const PopupMenuItem(value: _QueueRowMenuAction.noShow, child: Text('Mark no-show')),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

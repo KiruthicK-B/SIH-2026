@@ -61,14 +61,18 @@ class BookingCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  DateFormat('d MMM yyyy, h:mm a').format(slot.start),
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                    color: textPrimary,
+                Flexible(
+                  child: Text(
+                    DateFormat('d MMM yyyy, h:mm a').format(slot.start),
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      color: textPrimary,
+                    ),
                   ),
                 ),
+                const SizedBox(width: 8),
                 StatusBadge(
                   label: booking.status.label,
                   tone: toneForBookingStatus(booking.status),
@@ -94,11 +98,14 @@ class BookingCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 10),
-                Text(
-                  'Token ${booking.token}',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: isDark ? AgrivaColors.textSecondaryDark : AgrivaColors.textMuted,
+                Flexible(
+                  child: Text(
+                    'Token ${booking.token}',
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isDark ? AgrivaColors.textSecondaryDark : AgrivaColors.textMuted,
+                    ),
                   ),
                 ),
               ],

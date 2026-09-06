@@ -59,11 +59,11 @@ class QueuePositionCard extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Estimated Wait',
                 style: TextStyle(
                   fontSize: 11,
-                  color: AgrivaColors.textSecondary,
+                  color: AgrivaColors.textSecondaryFor(context),
                 ),
               ),
               const SizedBox(height: 4),

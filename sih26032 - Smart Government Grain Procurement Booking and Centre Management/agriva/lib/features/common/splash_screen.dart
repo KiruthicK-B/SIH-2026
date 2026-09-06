@@ -47,7 +47,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AgrivaColors.backgroundFor(context),
       body: SafeArea(
         child: MaxWidthBody(
           maxWidth: 480,
@@ -63,7 +63,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                   decoration: BoxDecoration(
                     color: AgrivaColors.primaryLight50,
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: AgrivaColors.border),
+                    border: Border.all(color: AgrivaColors.borderFor(context)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -108,21 +108,21 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                     Wrap(
                       alignment: WrapAlignment.center,
                       crossAxisAlignment: WrapCrossAlignment.center,
-                      children: const [
-                        Icon(Icons.lock_outline_rounded, size: 14, color: AgrivaColors.textMuted),
-                        SizedBox(width: 6),
+                      children: [
+                        Icon(Icons.lock_outline_rounded, size: 14, color: AgrivaColors.textMutedFor(context)),
+                        const SizedBox(width: 6),
                         Text(
                           'Secured by NIC Digital Infrastructure',
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 11.5, color: AgrivaColors.textMuted),
+                          style: TextStyle(fontSize: 11.5, color: AgrivaColors.textMutedFor(context)),
                         ),
                       ],
                     ),
                     const SizedBox(height: 4),
-                    const Text(
+                    Text(
                       'Govt. of Tamil Nadu • TNSCSC Smart APMC',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 11, color: AgrivaColors.textMuted, fontWeight: FontWeight.w500),
+                      style: TextStyle(fontSize: 11, color: AgrivaColors.textMutedFor(context), fontWeight: FontWeight.w500),
                     ),
                   ],
                 ),

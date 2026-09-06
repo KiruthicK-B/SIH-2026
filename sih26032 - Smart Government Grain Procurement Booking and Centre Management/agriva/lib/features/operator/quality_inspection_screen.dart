@@ -175,14 +175,19 @@ class _Row extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
-              color: AgrivaColors.textSecondary,
+              color: AgrivaColors.textSecondaryFor(context),
             ),
           ),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+              textAlign: TextAlign.right,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),

@@ -25,8 +25,8 @@ class SlotCard extends StatelessWidget {
 
     final borderColor = selected
         ? AgrivaColors.primary
-        : (feasible ? AgrivaColors.border : AgrivaColors.border);
-    final bgColor = selected ? AgrivaColors.primaryLight : AgrivaColors.surface;
+        : AgrivaColors.borderFor(context);
+    final bgColor = selected ? AgrivaColors.primaryLight : AgrivaColors.surfaceFor(context);
 
     return Opacity(
       opacity: feasible ? 1 : 0.55,
@@ -69,7 +69,7 @@ class SlotCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12.5,
                           color: feasible
-                              ? AgrivaColors.textSecondary
+                              ? AgrivaColors.textSecondaryFor(context)
                               : AgrivaColors.error,
                         ),
                       ),
@@ -77,31 +77,37 @@ class SlotCard extends StatelessWidget {
                   ),
                 ),
                 if (recommendation.isRecommended)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AgrivaColors.successBg,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Text(
-                      'RECOMMENDED',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        color: AgrivaColors.success,
+                  Flexible(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AgrivaColors.successBg,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text(
+                        'RECOMMENDED',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: AgrivaColors.success,
+                        ),
                       ),
                     ),
                   )
                 else if (!feasible)
-                  const Text(
-                    'Unavailable',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: AgrivaColors.error,
+                  const Flexible(
+                    child: Text(
+                      'Unavailable',
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AgrivaColors.error,
+                      ),
                     ),
                   ),
               ],

@@ -147,7 +147,7 @@ class ManagerDashboardScreen extends ConsumerWidget {
                                   overdueCentres.isNotEmpty
                                       ? '$firstOverdueName has $firstOverdueCount farmer verifications pending > 48 hrs!'
                                       : '$totalEscalated farmer verification(s) escalated by centre operators awaiting your clearance.',
-                                  style: const TextStyle(fontSize: 11.5, color: AgrivaColors.textPrimary),
+                                  style: TextStyle(fontSize: 11.5, color: AgrivaColors.textPrimaryFor(context)),
                                 ),
                               ],
                             ),
@@ -197,14 +197,14 @@ class ManagerDashboardScreen extends ConsumerWidget {
                                       '${pending.length} farmer${pending.length == 1 ? '' : 's'} awaiting verification',
                                       style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5),
                                     ),
-                                    const Text(
+                                    Text(
                                       'Review Aadhaar & land record documents to approve',
-                                      style: TextStyle(fontSize: 11.5, color: AgrivaColors.textSecondary),
+                                      style: TextStyle(fontSize: 11.5, color: AgrivaColors.textSecondaryFor(context)),
                                     ),
                                   ],
                                 ),
                               ),
-                              const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AgrivaColors.textSecondary),
+                              Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AgrivaColors.textSecondaryFor(context)),
                             ],
                           ),
                         ),

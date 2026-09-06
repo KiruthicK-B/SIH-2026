@@ -9,8 +9,11 @@ class QueueService {
 
   static const _scheduler = SchedulerService();
 
-  /// Active (not-yet-completed) entries for a centre, ordered by stage
-  /// priority then arrival time — this ordering IS the queue.
+  /// Active (not-yet-completed) entries for a centre, ordered by the queue's
+  /// actual management state — this ordering IS the queue: not-skipped
+  /// before skipped (an operator "Skip" always drops to the back), priority
+  /// before normal within each of those buckets, then manual `queuePosition`
+  /// (what reorder up/down swaps), then arrival time as the final tie-break.
   List<QueueEntry> activeQueueForCentre(
     List<QueueEntry> allEntries,
     Set<String> bookingIdsForCentre,
@@ -23,7 +26,13 @@ class QueueService {
               e.stage != QueueStage.exception,
         )
         .toList();
-    active.sort((a, b) => a.enteredAt.compareTo(b.enteredAt));
+    active.sort((a, b) {
+      if (a.skipped != b.skipped) return a.skipped ? 1 : -1;
+      if (a.isPriority != b.isPriority) return a.isPriority ? -1 : 1;
+      final posCompare = a.queuePosition.compareTo(b.queuePosition);
+      if (posCompare != 0) return posCompare;
+      return a.enteredAt.compareTo(b.enteredAt);
+    });
     return active;
   }
 

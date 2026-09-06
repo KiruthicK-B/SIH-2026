@@ -231,7 +231,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
     ];
 
     return Scaffold(
-      backgroundColor: AgrivaColors.background,
+      backgroundColor: AgrivaColors.backgroundFor(context),
       appBar: AppBar(
         title: const Text('Farmer Registration', style: TextStyle(fontWeight: FontWeight.w700)),
       ),
@@ -241,7 +241,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
           children: [
             LinearProgressIndicator(
               value: (_step + 1) / steps.length,
-              backgroundColor: AgrivaColors.border,
+              backgroundColor: AgrivaColors.borderFor(context),
               valueColor: const AlwaysStoppedAnimation<Color>(AgrivaColors.primary),
             ),
             Expanded(
@@ -252,9 +252,9 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
             ),
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                border: Border(top: BorderSide(color: AgrivaColors.border)),
+              decoration: BoxDecoration(
+                color: AgrivaColors.surfaceFor(context),
+                border: Border(top: BorderSide(color: AgrivaColors.borderFor(context))),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -332,14 +332,14 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
+              Text(
                 'Personal & Location Profile',
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16, color: AgrivaColors.textPrimary),
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16, color: AgrivaColors.textPrimaryFor(context)),
               ),
               const SizedBox(height: 4),
-              const Text(
+              Text(
                 'Enter accurate location details. Your profile will be automatically linked to your regional procurement centre.',
-                style: TextStyle(fontSize: 12.5, color: AgrivaColors.textSecondary),
+                style: TextStyle(fontSize: 12.5, color: AgrivaColors.textSecondaryFor(context)),
               ),
               const SizedBox(height: 18),
 
@@ -384,7 +384,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                         selectedColor: AgrivaColors.primaryLight50,
                         labelStyle: TextStyle(
                           fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                          color: selected ? AgrivaColors.primary : AgrivaColors.textPrimary,
+                          color: selected ? AgrivaColors.primary : AgrivaColors.textPrimaryFor(context),
                         ),
                         onSelected: (_) {
                           setState(() {
@@ -415,7 +415,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                       selectedColor: AgrivaColors.primaryLight50,
                       labelStyle: TextStyle(
                         fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
-                        color: isSel ? AgrivaColors.primary : AgrivaColors.textPrimary,
+                        color: isSel ? AgrivaColors.primary : AgrivaColors.textPrimaryFor(context),
                       ),
                       onSelected: (_) => setState(() => _taluk = t),
                     );
@@ -441,7 +441,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                   children: LocationClusterService.talukVillages[_taluk]!.map((v) {
                     return ActionChip(
                       label: Text(v, style: const TextStyle(fontSize: 11)),
-                      backgroundColor: AgrivaColors.surface,
+                      backgroundColor: AgrivaColors.surfaceFor(context),
                       onPressed: () => setState(() => _villageController.text = v),
                     );
                   }).toList(),
@@ -497,7 +497,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
       decoration: BoxDecoration(
         color: AgrivaColors.primaryLight50,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AgrivaColors.border),
+        border: Border.all(color: AgrivaColors.borderFor(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -515,17 +515,17 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
           const SizedBox(height: 8),
           Text(
             'Assigned Centre: ${mapping.centreName} (${mapping.centreCode})',
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimary),
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimaryFor(context)),
           ),
           const SizedBox(height: 3),
           Text(
             '${mapping.clusterName} • Approx ${mapping.approxDistanceKm} km (${mapping.estimatedTravelMinutes} mins transit)',
-            style: const TextStyle(fontSize: 11.5, color: AgrivaColors.textSecondary),
+            style: TextStyle(fontSize: 11.5, color: AgrivaColors.textSecondaryFor(context)),
           ),
           const SizedBox(height: 6),
-          const Text(
+          Text(
             '✓ Logistics & quota managed automatically by cluster. Verification request will route directly to this centre operator.',
-            style: TextStyle(fontSize: 11, color: AgrivaColors.textMuted, fontStyle: FontStyle.italic),
+            style: TextStyle(fontSize: 11, color: AgrivaColors.textMutedFor(context), fontStyle: FontStyle.italic),
           ),
         ],
       ),
@@ -537,9 +537,9 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
         children: [
           const Text('Land Ownership & Survey', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
           const SizedBox(height: 4),
-          const Text(
+          Text(
             'Procurement quota is calculated based on verified agricultural land records.',
-            style: TextStyle(fontSize: 12.5, color: AgrivaColors.textSecondary),
+            style: TextStyle(fontSize: 12.5, color: AgrivaColors.textSecondaryFor(context)),
           ),
           const SizedBox(height: 16),
 
@@ -572,7 +572,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                 selectedColor: AgrivaColors.primaryLight50,
                 labelStyle: TextStyle(
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                  color: selected ? AgrivaColors.primary : AgrivaColors.textPrimary,
+                  color: selected ? AgrivaColors.primary : AgrivaColors.textPrimaryFor(context),
                 ),
                 onSelected: (_) => setState(() => _ownership = t),
               );
@@ -606,9 +606,9 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
         children: [
           const Text('Direct Benefit Transfer (DBT) Bank Account', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
           const SizedBox(height: 4),
-          const Text(
+          Text(
             'MSP sale proceeds will be credited directly to this Aadhaar-linked bank account within 24–48 hours of weighment.',
-            style: TextStyle(fontSize: 12.5, color: AgrivaColors.textSecondary),
+            style: TextStyle(fontSize: 12.5, color: AgrivaColors.textSecondaryFor(context)),
           ),
           const SizedBox(height: 18),
 
@@ -635,18 +635,18 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
         children: [
           const Text('Review & Confirm Registration', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
           const SizedBox(height: 4),
-          const Text(
+          Text(
             'Please verify your details before submitting to the centre operator.',
-            style: TextStyle(fontSize: 12.5, color: AgrivaColors.textSecondary),
+            style: TextStyle(fontSize: 12.5, color: AgrivaColors.textSecondaryFor(context)),
           ),
           const SizedBox(height: 16),
 
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AgrivaColors.surfaceFor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AgrivaColors.border),
+              border: Border.all(color: AgrivaColors.borderFor(context)),
             ),
             child: Column(
               children: [
@@ -700,13 +700,13 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
               width: 125,
               child: Text(
                 label,
-                style: const TextStyle(color: AgrivaColors.textMuted, fontSize: 12.5, fontWeight: FontWeight.w500),
+                style: TextStyle(color: AgrivaColors.textMutedFor(context), fontSize: 12.5, fontWeight: FontWeight.w500),
               ),
             ),
             Expanded(
               child: Text(
                 value.isEmpty ? '—' : value,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AgrivaColors.textPrimary),
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AgrivaColors.textPrimaryFor(context)),
               ),
             ),
           ],

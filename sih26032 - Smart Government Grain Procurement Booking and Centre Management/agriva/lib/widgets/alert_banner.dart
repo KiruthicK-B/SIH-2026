@@ -17,7 +17,7 @@ class AlertBanner extends StatelessWidget {
     this.icon,
   });
 
-  (Color, Color, IconData) get _style => switch (tone) {
+  (Color, Color, IconData) _style(BuildContext context) => switch (tone) {
     StatusTone.success => (
       AgrivaColors.success,
       AgrivaColors.successBg,
@@ -39,7 +39,7 @@ class AlertBanner extends StatelessWidget {
       Icons.info_outline,
     ),
     StatusTone.inactive => (
-      AgrivaColors.textMuted,
+      AgrivaColors.textMutedFor(context),
       AgrivaColors.inactiveBg,
       Icons.circle_outlined,
     ),
@@ -52,7 +52,7 @@ class AlertBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (fg, bg, defaultIcon) = _style;
+    final (fg, bg, defaultIcon) = _style(context);
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -80,8 +80,8 @@ class AlertBanner extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   message,
-                  style: const TextStyle(
-                    color: AgrivaColors.textSecondary,
+                  style: TextStyle(
+                    color: AgrivaColors.textSecondaryFor(context),
                     fontSize: 13,
                   ),
                 ),

@@ -17,7 +17,7 @@ class LoadingState extends StatelessWidget {
           const SizedBox(height: 14),
           Text(
             message,
-            style: const TextStyle(color: AgrivaColors.textSecondary),
+            style: TextStyle(color: AgrivaColors.textSecondaryFor(context)),
           ),
         ],
       ),
@@ -49,23 +49,23 @@ class EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 44, color: AgrivaColors.textMuted),
+            Icon(icon, size: 44, color: AgrivaColors.textMutedFor(context)),
             const SizedBox(height: 12),
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
-                color: AgrivaColors.textPrimary,
+                color: AgrivaColors.textPrimaryFor(context),
               ),
             ),
             const SizedBox(height: 4),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: AgrivaColors.textSecondary,
+                color: AgrivaColors.textSecondaryFor(context),
               ),
             ),
             if (actionLabel != null) ...[
@@ -102,7 +102,7 @@ class ErrorState extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             message,
-            style: const TextStyle(color: AgrivaColors.textSecondary),
+            style: TextStyle(color: AgrivaColors.textSecondaryFor(context)),
           ),
           if (onRetry != null) ...[
             const SizedBox(height: 14),

@@ -58,7 +58,7 @@ class _RaiseGrievanceScreenState extends ConsumerState<RaiseGrievanceScreen> {
             if (widget.bookingId != null) ...[
               Text(
                 'Related booking: ${widget.bookingId}',
-                style: const TextStyle(fontSize: 12.5, color: AgrivaColors.textMuted),
+                style: TextStyle(fontSize: 12.5, color: AgrivaColors.textMutedFor(context)),
               ),
               const SizedBox(height: 14),
             ],

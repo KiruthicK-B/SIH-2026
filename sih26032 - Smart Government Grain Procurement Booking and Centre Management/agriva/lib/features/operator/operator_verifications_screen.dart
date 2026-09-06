@@ -56,7 +56,7 @@ class _OperatorVerificationsScreenState
     final farmersAsync = ref.watch(centreFarmersProvider(centreId));
 
     return Scaffold(
-      backgroundColor: AgrivaColors.background,
+      backgroundColor: AgrivaColors.backgroundFor(context),
       appBar: AgrivaAppBar(
         title: 'Farmer Verifications',
         subtitle: 'Direct Purchase Centre Review',
@@ -203,7 +203,7 @@ class _FarmerVerificationCardState
           children: [
             Text(
               'Escalate ${widget.farmer.name}\'s profile to District Admin for higher-level review or dispute resolution.',
-              style: const TextStyle(fontSize: 13, color: AgrivaColors.textSecondary),
+              style: TextStyle(fontSize: 13, color: AgrivaColors.textSecondaryFor(context)),
             ),
             const SizedBox(height: 14),
             TextField(
@@ -254,9 +254,9 @@ class _FarmerVerificationCardState
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
+            Text(
               'Specify reason for rejecting this farmer registration. The farmer will be notified.',
-              style: TextStyle(fontSize: 13, color: AgrivaColors.textSecondary),
+              style: TextStyle(fontSize: 13, color: AgrivaColors.textSecondaryFor(context)),
             ),
             const SizedBox(height: 12),
             TextField(
@@ -304,12 +304,12 @@ class _FarmerVerificationCardState
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AgrivaColors.surfaceFor(context),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: isPendingLong && widget.isPending
               ? AgrivaColors.warning
-              : AgrivaColors.border,
+              : AgrivaColors.borderFor(context),
           width: isPendingLong && widget.isPending ? 1.5 : 1.0,
         ),
         boxShadow: [
@@ -336,7 +336,7 @@ class _FarmerVerificationCardState
                     ),
                     Text(
                       '${farmer.farmerCode} • Registered ${farmer.createdAt != null ? DateFormat('d MMM yyyy').format(farmer.createdAt!) : 'Recently'}',
-                      style: const TextStyle(fontSize: 11.5, color: AgrivaColors.textSecondary),
+                      style: TextStyle(fontSize: 11.5, color: AgrivaColors.textSecondaryFor(context)),
                     ),
                   ],
                 ),
@@ -377,12 +377,13 @@ class _FarmerVerificationCardState
           const Divider(height: 20),
 
           // Identity & Address Details
-          _detailRow(Icons.phone_rounded, 'Mobile', farmer.phone),
-          _detailRow(Icons.fingerprint_rounded, 'Aadhaar', Farmer.maskAadhaar(farmer.aadhaarNumber)),
-          _detailRow(Icons.location_on_rounded, 'Address', farmer.fullAddress),
+          _detailRow(context, Icons.phone_rounded, 'Mobile', farmer.phone),
+          _detailRow(context, Icons.fingerprint_rounded, 'Aadhaar', Farmer.maskAadhaar(farmer.aadhaarNumber)),
+          _detailRow(context, Icons.location_on_rounded, 'Address', farmer.fullAddress),
 
           if (farmer.bankAccountNumber != null && farmer.bankAccountNumber!.isNotEmpty)
             _detailRow(
+              context,
               Icons.account_balance_rounded,
               'Bank / IFSC',
               '${Farmer.maskAccount(farmer.bankAccountNumber)} (${farmer.bankIfsc ?? "N/A"})',
@@ -407,7 +408,7 @@ class _FarmerVerificationCardState
                   const SizedBox(height: 4),
                   Text(
                     farmer.escalationNotes!,
-                    style: const TextStyle(fontSize: 12, color: AgrivaColors.textPrimary),
+                    style: TextStyle(fontSize: 12, color: AgrivaColors.textPrimaryFor(context)),
                   ),
                 ],
               ),
@@ -465,25 +466,25 @@ class _FarmerVerificationCardState
     );
   }
 
-  Widget _detailRow(IconData icon, String label, String value) {
+  Widget _detailRow(BuildContext context, IconData icon, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 14, color: AgrivaColors.textMuted),
+          Icon(icon, size: 14, color: AgrivaColors.textMutedFor(context)),
           const SizedBox(width: 6),
           SizedBox(
             width: 70,
             child: Text(
               label,
-              style: const TextStyle(fontSize: 12, color: AgrivaColors.textMuted),
+              style: TextStyle(fontSize: 12, color: AgrivaColors.textMutedFor(context)),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: AgrivaColors.textPrimary),
+              style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: AgrivaColors.textPrimaryFor(context)),
             ),
           ),
         ],

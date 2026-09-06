@@ -115,7 +115,7 @@ class FarmerHomeScreen extends ConsumerWidget {
         final upcoming = home.upcoming;
 
         return Scaffold(
-          backgroundColor: AgrivaColors.background,
+          backgroundColor: AgrivaColors.backgroundFor(context),
           appBar: AppBar(
             title: Row(
               children: [
@@ -182,7 +182,7 @@ class FarmerHomeScreen extends ConsumerWidget {
                           localeDisplayNames[l.languageCode] ?? l.languageCode,
                           style: TextStyle(
                             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                            color: isSelected ? AgrivaColors.primary : AgrivaColors.textPrimary,
+                            color: isSelected ? AgrivaColors.primary : AgrivaColors.textPrimaryFor(context),
                           ),
                         ),
                         if (isSelected) ...[
@@ -239,7 +239,7 @@ class FarmerHomeScreen extends ConsumerWidget {
                   cropsAsync.when(
                     data: (crops) => crops.isEmpty
                         ? const SizedBox.shrink()
-                        : _buildMspTicker(crops),
+                        : _buildMspTicker(context, crops),
                     loading: () => const SizedBox.shrink(),
                     error: (e, st) => const SizedBox.shrink(),
                   ),
@@ -295,7 +295,7 @@ class FarmerHomeScreen extends ConsumerWidget {
                                   farmer.verificationStatus == FarmerVerificationStatus.escalatedToDistrict
                                       ? 'Your profile has been forwarded to the District Administration for verification clearance. Slot booking will unlock once approved.'
                                       : 'Your registration is routed to your regional centre (${farmer.assignedCentreId.isNotEmpty ? farmer.assignedCentreId : "assigned centre"}). The operator must approve your identity and land documents before slot booking is unlocked.',
-                                  style: const TextStyle(fontSize: 12, color: AgrivaColors.textPrimary),
+                                  style: TextStyle(fontSize: 12, color: AgrivaColors.textPrimaryFor(context)),
                                 ),
                               ],
                             ),
@@ -309,9 +309,9 @@ class FarmerHomeScreen extends ConsumerWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'Active Procurement Booking',
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimary),
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimaryFor(context)),
                       ),
                       if (upcoming != null)
                         TextButton(
@@ -326,9 +326,9 @@ class FarmerHomeScreen extends ConsumerWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AgrivaColors.surfaceFor(context),
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AgrivaColors.border),
+                        border: Border.all(color: AgrivaColors.borderFor(context)),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.02),
@@ -364,9 +364,9 @@ class FarmerHomeScreen extends ConsumerWidget {
                   const SizedBox(height: 22),
 
                   // Quick Actions Grid (2x2)
-                  const Text(
+                  Text(
                     'Quick Services',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimary),
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimaryFor(context)),
                   ),
                   const SizedBox(height: 12),
 
@@ -426,7 +426,7 @@ class FarmerHomeScreen extends ConsumerWidget {
                     decoration: BoxDecoration(
                       color: AgrivaColors.primaryLight50,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AgrivaColors.borderLight),
+                      border: Border.all(color: AgrivaColors.borderFor(context)),
                     ),
                     child: Row(
                       children: [
@@ -435,15 +435,15 @@ class FarmerHomeScreen extends ConsumerWidget {
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text(
+                            children: [
+                              const Text(
                                 'Kisan Procurement Helpline: 1800-180-1551',
                                 style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5, color: AgrivaColors.primaryDark),
                               ),
-                              SizedBox(height: 2),
+                              const SizedBox(height: 2),
                               Text(
                                 'Toll-free DoCA grain assistance (8:00 AM – 8:00 PM)',
-                                style: TextStyle(fontSize: 11, color: AgrivaColors.textSecondary),
+                                style: TextStyle(fontSize: 11, color: AgrivaColors.textSecondaryFor(context)),
                               ),
                             ],
                           ),
@@ -460,13 +460,13 @@ class FarmerHomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildMspTicker(List<Crop> crops) {
+  Widget _buildMspTicker(BuildContext context, List<Crop> crops) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AgrivaColors.surfaceFor(context),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AgrivaColors.border),
+        border: Border.all(color: AgrivaColors.borderFor(context)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -479,15 +479,15 @@ class FarmerHomeScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: const [
-              Icon(Icons.workspace_premium_rounded, size: 16, color: AgrivaColors.gold),
-              SizedBox(width: 6),
+            children: [
+              const Icon(Icons.workspace_premium_rounded, size: 16, color: AgrivaColors.gold),
+              const SizedBox(width: 6),
               Text(
                 'Government Guaranteed MSP Rates 2026',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimary),
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimaryFor(context)),
               ),
-              Spacer(),
-              Text(
+              const Spacer(),
+              const Text(
                 'DoCA Verified',
                 style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AgrivaColors.primary),
               ),
@@ -504,14 +504,14 @@ class FarmerHomeScreen extends ConsumerWidget {
                   decoration: BoxDecoration(
                     color: AgrivaColors.primaryLight50,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AgrivaColors.borderLight),
+                    border: Border.all(color: AgrivaColors.borderFor(context)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         '${c.name} (${c.season.label})',
-                        style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AgrivaColors.textPrimary),
+                        style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AgrivaColors.textPrimaryFor(context)),
                       ),
                       const SizedBox(width: 6),
                       Text(
@@ -545,9 +545,9 @@ class _UpcomingSlotCard extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AgrivaColors.surfaceFor(context),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AgrivaColors.border),
+        border: Border.all(color: AgrivaColors.borderFor(context)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
@@ -577,12 +577,12 @@ class _UpcomingSlotCard extends ConsumerWidget {
                   children: [
                     Text(
                       centre.name,
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AgrivaColors.textPrimary),
+                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AgrivaColors.textPrimaryFor(context)),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       '${DateFormat('d MMM yyyy').format(slot.start)} • ${DateFormat('h:mm a').format(slot.start)} – ${DateFormat('h:mm a').format(slot.end)}',
-                      style: const TextStyle(color: AgrivaColors.textSecondary, fontSize: 12.5),
+                      style: TextStyle(color: AgrivaColors.textSecondaryFor(context), fontSize: 12.5),
                     ),
                   ],
                 ),
@@ -677,7 +677,7 @@ class _DashboardQueueStats extends ConsumerWidget {
                   ),
                   Text(
                     'Estimated wait: ~$wait mins • Tap for live token monitor',
-                    style: const TextStyle(fontSize: 11, color: AgrivaColors.textSecondary),
+                    style: TextStyle(fontSize: 11, color: AgrivaColors.textSecondaryFor(context)),
                   ),
                 ],
               ),
@@ -700,9 +700,9 @@ class _MiniStat extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 11, color: AgrivaColors.textMuted, fontWeight: FontWeight.w500)),
+        Text(label, style: TextStyle(fontSize: 11, color: AgrivaColors.textMutedFor(context), fontWeight: FontWeight.w500)),
         const SizedBox(height: 3),
-        Text(value, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimary)),
+        Text(value, style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimaryFor(context))),
       ],
     );
   }
@@ -731,9 +731,9 @@ class _ActionCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AgrivaColors.surfaceFor(context),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AgrivaColors.border),
+          border: Border.all(color: AgrivaColors.borderFor(context)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.02),
@@ -756,12 +756,12 @@ class _ActionCard extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               title,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimary),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimaryFor(context)),
             ),
             const SizedBox(height: 2),
             Text(
               subtitle,
-              style: const TextStyle(fontSize: 11, color: AgrivaColors.textSecondary),
+              style: TextStyle(fontSize: 11, color: AgrivaColors.textSecondaryFor(context)),
             ),
           ],
         ),

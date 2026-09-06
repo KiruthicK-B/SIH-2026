@@ -187,7 +187,7 @@ class _ManageCapacityDialogState extends ConsumerState<ManageCapacityDialog> {
                       ),
                       Text(
                         widget.centre.name,
-                        style: const TextStyle(fontSize: 11.5, color: AgrivaColors.textSecondary),
+                        style: TextStyle(fontSize: 11.5, color: AgrivaColors.textSecondaryFor(context)),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
@@ -238,9 +238,9 @@ class _ManageCapacityDialogState extends ConsumerState<ManageCapacityDialog> {
                       style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AgrivaColors.primary),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
+                    Text(
                       'Enforces strict maximums per 1-hour slot. Farmer slot booking will close when capacity is met.',
-                      style: TextStyle(fontSize: 11.5, color: AgrivaColors.textSecondary),
+                      style: TextStyle(fontSize: 11.5, color: AgrivaColors.textSecondaryFor(context)),
                     ),
                     const SizedBox(height: 10),
 

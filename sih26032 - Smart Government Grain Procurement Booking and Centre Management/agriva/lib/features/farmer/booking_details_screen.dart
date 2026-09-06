@@ -102,14 +102,22 @@ class BookingDetailsScreen extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(centre.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                    Expanded(
+                      child: Text(
+                        centre.name,
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
                     StatusBadge(label: booking.status.label, tone: toneForBookingStatus(booking.status)),
                   ],
                 ),
                 const SizedBox(height: 4),
                 Text(
                   '${DateFormat('d MMM yyyy').format(slot.start)}, ${DateFormat('h:mm a').format(slot.start)} – ${DateFormat('h:mm a').format(slot.end)}',
-                  style: const TextStyle(color: AgrivaColors.textSecondary),
+                  style: TextStyle(color: AgrivaColors.textSecondaryFor(context)),
                 ),
                 const SizedBox(height: 16),
 
@@ -171,9 +179,9 @@ class BookingDetailsScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AgrivaColors.surfaceFor(context),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AgrivaColors.border),
+                    border: Border.all(color: AgrivaColors.borderFor(context)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -189,9 +197,9 @@ class BookingDetailsScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AgrivaColors.surfaceFor(context),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AgrivaColors.border),
+                    border: Border.all(color: AgrivaColors.borderFor(context)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -329,8 +337,17 @@ class _Row extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 13, color: AgrivaColors.textSecondary)),
-          Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+          Text(label, style: TextStyle(fontSize: 13, color: AgrivaColors.textSecondaryFor(context))),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+              textAlign: TextAlign.right,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
     );

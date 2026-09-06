@@ -21,7 +21,7 @@ class OperatorMoreScreen extends ConsumerWidget {
     final locale = ref.watch(localeControllerProvider);
 
     return Scaffold(
-      backgroundColor: AgrivaColors.background,
+      backgroundColor: AgrivaColors.backgroundFor(context),
       appBar: const AgrivaAppBar(title: 'Account'),
       body: MaxWidthBody(
         child: ListView(
@@ -31,9 +31,9 @@ class OperatorMoreScreen extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AgrivaColors.surfaceFor(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AgrivaColors.border),
+                border: Border.all(color: AgrivaColors.borderFor(context)),
               ),
               child: Column(
                 children: [
@@ -50,7 +50,7 @@ class OperatorMoreScreen extends ConsumerWidget {
                   const SizedBox(height: 2),
                   Text(
                     'Centre In-Charge • ${user.centreId ?? "OP-Erode-01"}',
-                    style: const TextStyle(fontSize: 13, color: AgrivaColors.textSecondary),
+                    style: TextStyle(fontSize: 13, color: AgrivaColors.textSecondaryFor(context)),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
@@ -112,9 +112,9 @@ class OperatorMoreScreen extends ConsumerWidget {
             const SizedBox(height: 8),
             Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AgrivaColors.surfaceFor(context),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AgrivaColors.border),
+                border: Border.all(color: AgrivaColors.borderFor(context)),
               ),
               child: Column(
                 children: [
@@ -225,15 +225,15 @@ class _InfoTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AgrivaColors.surfaceFor(context),
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AgrivaColors.border),
+          border: Border.all(color: AgrivaColors.borderFor(context)),
         ),
         child: Row(
           children: [
-            Icon(icon, size: 18, color: AgrivaColors.textSecondary),
+            Icon(icon, size: 18, color: AgrivaColors.textSecondaryFor(context)),
             const SizedBox(width: 12),
-            Text(label, style: const TextStyle(fontSize: 13, color: AgrivaColors.textSecondary)),
+            Text(label, style: TextStyle(fontSize: 13, color: AgrivaColors.textSecondaryFor(context))),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -261,9 +261,9 @@ class _MenuTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-      leading: Icon(icon, color: AgrivaColors.textSecondary),
-      title: Text(label, style: const TextStyle(color: AgrivaColors.textPrimary, fontWeight: FontWeight.w600, fontSize: 13.5)),
-      trailing: const Icon(Icons.chevron_right, size: 18, color: AgrivaColors.textMuted),
+      leading: Icon(icon, color: AgrivaColors.textSecondaryFor(context)),
+      title: Text(label, style: TextStyle(color: AgrivaColors.textPrimaryFor(context), fontWeight: FontWeight.w600, fontSize: 13.5)),
+      trailing: Icon(Icons.chevron_right, size: 18, color: AgrivaColors.textMutedFor(context)),
       onTap: onTap,
     );
   }

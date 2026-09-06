@@ -85,9 +85,9 @@ class OperatorScheduleScreen extends ConsumerWidget {
                 return Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AgrivaColors.surfaceFor(context),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AgrivaColors.border),
+                    border: Border.all(color: AgrivaColors.borderFor(context)),
                   ),
                   child: Row(
                     children: [
@@ -105,7 +105,7 @@ class OperatorScheduleScreen extends ConsumerWidget {
                             Text(row.farmer.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
                             Text(
                               '${row.booking.token} · ${row.booking.expectedQuantityQ.toStringAsFixed(0)} Q',
-                              style: const TextStyle(fontSize: 12, color: AgrivaColors.textSecondary),
+                              style: TextStyle(fontSize: 12, color: AgrivaColors.textSecondaryFor(context)),
                             ),
                           ],
                         ),

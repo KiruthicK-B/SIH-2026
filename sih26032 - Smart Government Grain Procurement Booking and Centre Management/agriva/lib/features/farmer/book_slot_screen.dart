@@ -117,7 +117,7 @@ class _BookSlotScreenState extends ConsumerState<BookSlotScreen> {
           children: [
             Text(
               result.message,
-              style: const TextStyle(fontSize: 14, color: AgrivaColors.textPrimary),
+              style: TextStyle(fontSize: 14, color: AgrivaColors.textPrimaryFor(context)),
             ),
             const SizedBox(height: 12),
             Container(
@@ -125,7 +125,7 @@ class _BookSlotScreenState extends ConsumerState<BookSlotScreen> {
               decoration: BoxDecoration(
                 color: AgrivaColors.primaryLight50,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AgrivaColors.borderLight),
+                border: Border.all(color: AgrivaColors.borderFor(context)),
               ),
               child: Row(
                 children: [
@@ -172,7 +172,7 @@ class _BookSlotScreenState extends ConsumerState<BookSlotScreen> {
     final farmerAsync = ref.watch(farmerByIdProvider(farmerId));
 
     return Scaffold(
-      backgroundColor: AgrivaColors.background,
+      backgroundColor: AgrivaColors.backgroundFor(context),
       appBar: AgrivaAppBar(
         title: _step == 0
             ? 'Book Grain Slot'
@@ -231,9 +231,9 @@ class _BookSlotScreenState extends ConsumerState<BookSlotScreen> {
                                     ? 'Your profile is currently under review with the District Administration.\n\nSlot booking will unlock once verification is approved.'
                                     : 'Your registration is currently pending verification by your assigned Centre Operator (${farmer.assignedCentreId.isNotEmpty ? farmer.assignedCentreId : "regional centre"}).\n\nSlot booking will automatically unlock once your documents are approved.',
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 13,
-                                  color: AgrivaColors.textSecondary,
+                                  color: AgrivaColors.textSecondaryFor(context),
                                   height: 1.4,
                                 ),
                               ),
@@ -321,9 +321,9 @@ class _BookSlotScreenState extends ConsumerState<BookSlotScreen> {
                           top: false,
                           child: Container(
                             padding: const EdgeInsets.all(16),
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              border: Border(top: BorderSide(color: AgrivaColors.border)),
+                            decoration: BoxDecoration(
+                              color: AgrivaColors.surfaceFor(context),
+                              border: Border(top: BorderSide(color: AgrivaColors.borderFor(context))),
                             ),
                             child: _step == 2
                                 ? Column(
@@ -411,7 +411,7 @@ class _StepIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
+      color: AgrivaColors.surfaceFor(context),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -425,7 +425,7 @@ class _StepIndicator extends StatelessWidget {
                   child: Text(
                     '${i + 1}',
                     style: TextStyle(
-                      color: i <= step ? Colors.white : AgrivaColors.textMuted,
+                      color: i <= step ? Colors.white : AgrivaColors.textMutedFor(context),
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                     ),
@@ -437,7 +437,7 @@ class _StepIndicator extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: i == step ? FontWeight.w700 : FontWeight.w500,
-                    color: i <= step ? AgrivaColors.textPrimary : AgrivaColors.textMuted,
+                    color: i <= step ? AgrivaColors.textPrimaryFor(context) : AgrivaColors.textMutedFor(context),
                   ),
                 ),
               ],
@@ -449,7 +449,7 @@ class _StepIndicator extends StatelessWidget {
                   child: Container(
                     height: 2.5,
                     decoration: BoxDecoration(
-                      color: i < step ? AgrivaColors.primary : AgrivaColors.border,
+                      color: i < step ? AgrivaColors.primary : AgrivaColors.borderFor(context),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -502,9 +502,9 @@ class _Step1 extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               '1. Select Crop to Procure',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimary),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimaryFor(context)),
             ),
             if (selectedCrop != null)
               Container(
@@ -533,9 +533,9 @@ class _Step1 extends StatelessWidget {
                 duration: const Duration(milliseconds: 150),
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
-                  color: isSelected ? AgrivaColors.primaryLight : Colors.white,
+                  color: isSelected ? AgrivaColors.primaryLight : AgrivaColors.surfaceFor(context),
                   border: Border.all(
-                    color: isSelected ? AgrivaColors.primary : AgrivaColors.border,
+                    color: isSelected ? AgrivaColors.primary : AgrivaColors.borderFor(context),
                     width: isSelected ? 2 : 1,
                   ),
                   borderRadius: BorderRadius.circular(10),
@@ -554,7 +554,7 @@ class _Step1 extends StatelessWidget {
                     Icon(
                       isSelected ? Icons.check_circle_rounded : Icons.eco_outlined,
                       size: 16,
-                      color: isSelected ? AgrivaColors.primary : AgrivaColors.textSecondary,
+                      color: isSelected ? AgrivaColors.primary : AgrivaColors.textSecondaryFor(context),
                     ),
                     const SizedBox(width: 8),
                     Text(
@@ -562,7 +562,7 @@ class _Step1 extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                        color: isSelected ? AgrivaColors.primaryDark : AgrivaColors.textPrimary,
+                        color: isSelected ? AgrivaColors.primaryDark : AgrivaColors.textPrimaryFor(context),
                       ),
                     ),
                   ],
@@ -576,14 +576,14 @@ class _Step1 extends StatelessWidget {
         // 2. Select Nearest Procurement Centre (Sorted by distance km)
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
+          children: [
             Text(
               '2. Select Procurement Centre',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimary),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimaryFor(context)),
             ),
             Text(
               'Sorted by nearest distance',
-              style: TextStyle(fontSize: 11.5, color: AgrivaColors.textSecondary),
+              style: TextStyle(fontSize: 11.5, color: AgrivaColors.textSecondaryFor(context)),
             ),
           ],
         ),
@@ -602,9 +602,9 @@ class _Step1 extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: isSelected ? AgrivaColors.primaryLight50 : Colors.white,
+                    color: isSelected ? AgrivaColors.primaryLight50 : AgrivaColors.surfaceFor(context),
                     border: Border.all(
-                      color: isSelected ? AgrivaColors.primary : AgrivaColors.border,
+                      color: isSelected ? AgrivaColors.primary : AgrivaColors.borderFor(context),
                       width: isSelected ? 2 : 1,
                     ),
                     borderRadius: BorderRadius.circular(12),
@@ -618,7 +618,7 @@ class _Step1 extends StatelessWidget {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: isSelected ? AgrivaColors.primary : AgrivaColors.border,
+                            color: isSelected ? AgrivaColors.primary : AgrivaColors.borderFor(context),
                             width: 2,
                           ),
                           color: isSelected ? AgrivaColors.primary : Colors.transparent,
@@ -658,17 +658,21 @@ class _Step1 extends StatelessWidget {
                             const SizedBox(height: 4),
                             Row(
                               children: [
-                                const Icon(Icons.location_on_outlined, size: 13, color: AgrivaColors.textSecondary),
+                                Icon(Icons.location_on_outlined, size: 13, color: AgrivaColors.textSecondaryFor(context)),
                                 const SizedBox(width: 4),
-                                Text(
-                                  '${distKm.toStringAsFixed(1)} km · ${c.taluk}',
-                                  style: const TextStyle(fontSize: 12, color: AgrivaColors.textSecondary),
+                                Flexible(
+                                  child: Text(
+                                    '${distKm.toStringAsFixed(1)} km · ${c.taluk}',
+                                    style: TextStyle(fontSize: 12, color: AgrivaColors.textSecondaryFor(context)),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
                                 const SizedBox(width: 10),
                                 Container(
                                   width: 4,
                                   height: 4,
-                                  decoration: const BoxDecoration(color: AgrivaColors.textMuted, shape: BoxShape.circle),
+                                  decoration: BoxDecoration(color: AgrivaColors.textMutedFor(context), shape: BoxShape.circle),
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
@@ -690,9 +694,9 @@ class _Step1 extends StatelessWidget {
         const SizedBox(height: 20),
 
         // 3. Select Date
-        const Text(
+        Text(
           '3. Select Procurement Date',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimary),
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimaryFor(context)),
         ),
         const SizedBox(height: 8),
         // Quick Date Chips
@@ -719,7 +723,7 @@ class _Step1 extends StatelessWidget {
                       selected: isSelected,
                       selectedColor: AgrivaColors.primary,
                       labelStyle: TextStyle(
-                        color: isSelected ? Colors.white : AgrivaColors.textPrimary,
+                        color: isSelected ? Colors.white : AgrivaColors.textPrimaryFor(context),
                         fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                         fontSize: 12.5,
                       ),
@@ -746,23 +750,30 @@ class _Step1 extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(color: AgrivaColors.border),
+              color: AgrivaColors.surfaceFor(context),
+              border: Border.all(color: AgrivaColors.borderFor(context)),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    const Icon(Icons.event_available_rounded, size: 18, color: AgrivaColors.primary),
-                    const SizedBox(width: 10),
-                    Text(
-                      DateFormat('EEEE, d MMMM yyyy').format(date),
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5),
-                    ),
-                  ],
+                Expanded(
+                  child: Row(
+                    children: [
+                      const Icon(Icons.event_available_rounded, size: 18, color: AgrivaColors.primary),
+                      const SizedBox(width: 10),
+                      Flexible(
+                        child: Text(
+                          DateFormat('EEEE, d MMMM yyyy').format(date),
+                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 8),
                 const Text(
                   'Change Date',
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AgrivaColors.primary),
@@ -774,9 +785,9 @@ class _Step1 extends StatelessWidget {
         const SizedBox(height: 20),
 
         // 4. Expected Quantity & MSP Calculation
-        const Text(
+        Text(
           '4. Expected Grain Quantity',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimary),
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimaryFor(context)),
         ),
         const SizedBox(height: 8),
         AppTextField(
@@ -812,7 +823,7 @@ class _Step1 extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       'Based on ${qty?.toStringAsFixed(0) ?? "0"} Q × Official MSP ₹${selectedCrop?.msp ?? 2275}/Q',
-                      style: const TextStyle(fontSize: 11.5, color: AgrivaColors.textSecondary),
+                      style: TextStyle(fontSize: 11.5, color: AgrivaColors.textSecondaryFor(context)),
                     ),
                   ],
                 ),
@@ -875,17 +886,17 @@ class _Step2 extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.event_busy_rounded, size: 48, color: AgrivaColors.textMuted),
+                  Icon(Icons.event_busy_rounded, size: 48, color: AgrivaColors.textMutedFor(context)),
                   const SizedBox(height: 12),
                   const Text(
                     'No slots available for this date',
                     style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
                   ),
                   const SizedBox(height: 6),
-                  const Text(
+                  Text(
                     'Please return to Step 1 and select another date.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: AgrivaColors.textSecondary, fontSize: 13),
+                    style: TextStyle(color: AgrivaColors.textSecondaryFor(context), fontSize: 13),
                   ),
                 ],
               ),
@@ -899,9 +910,9 @@ class _Step2 extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AgrivaColors.surfaceFor(context),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AgrivaColors.border),
+                border: Border.all(color: AgrivaColors.borderFor(context)),
               ),
               child: Row(
                 children: [
@@ -910,7 +921,7 @@ class _Step2 extends ConsumerWidget {
                   Expanded(
                     child: Text(
                       '${recs.where((r) => r.feasible).length} feasible slots found for ${DateFormat("d MMM yyyy").format(date)}',
-                      style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: AgrivaColors.textPrimary),
+                      style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: AgrivaColors.textPrimaryFor(context)),
                     ),
                   ),
                 ],
@@ -972,9 +983,9 @@ class _Step3 extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AgrivaColors.surfaceFor(context),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AgrivaColors.border),
+                border: Border.all(color: AgrivaColors.borderFor(context)),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.04),
@@ -1021,13 +1032,19 @@ class _Step3 extends ConsumerWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Total Estimated DBT Payout',
-                        style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimary),
-                      ),
                       Text(
-                        '₹${NumberFormat('#,##,###').format(totalPayout)}',
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AgrivaColors.primary),
+                        'Total Estimated DBT Payout',
+                        style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AgrivaColors.textPrimaryFor(context)),
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          '₹${NumberFormat('#,##,###').format(totalPayout)}',
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AgrivaColors.primary),
+                          textAlign: TextAlign.right,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
                   ),
@@ -1046,7 +1063,7 @@ class _Step3 extends ConsumerWidget {
                         Expanded(
                           child: Text(
                             'Estimated travel: ${farmer.estimatedTravelMinutes} mins (${farmer.distanceKm} km). Recommended departure: ${DateFormat('h:mm a').format(departure)}.',
-                            style: const TextStyle(fontSize: 12, color: AgrivaColors.textSecondary),
+                            style: TextStyle(fontSize: 12, color: AgrivaColors.textSecondaryFor(context)),
                           ),
                         ),
                       ],
@@ -1074,12 +1091,12 @@ class _SummaryRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 13, color: AgrivaColors.textSecondary)),
+          Text(label, style: TextStyle(fontSize: 13, color: AgrivaColors.textSecondaryFor(context))),
           Flexible(
             child: Text(
               value,
               textAlign: TextAlign.end,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AgrivaColors.textPrimary),
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AgrivaColors.textPrimaryFor(context)),
             ),
           ),
         ],

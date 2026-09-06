@@ -1,0 +1,17 @@
+{
+  "name": "agriva-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Generic JSON-document REST backend for the AGRIVA Flutter app (mirrors Repository<T>).",
+  "main": "server.js",
+  "scripts": {
+    "start": "node scripts/start-with-tunnel.js",
+    "server": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "pg": "^8.12.0"
+  }
+}

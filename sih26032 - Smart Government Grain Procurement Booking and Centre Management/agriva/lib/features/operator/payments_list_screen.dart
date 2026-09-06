@@ -51,9 +51,9 @@ class PaymentsListScreen extends ConsumerWidget {
                 return Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AgrivaColors.surfaceFor(context),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AgrivaColors.border),
+                    border: Border.all(color: AgrivaColors.borderFor(context)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -61,17 +61,21 @@ class PaymentsListScreen extends ConsumerWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            '${p.bookingId} · ${farmer?.name ?? '—'}',
-                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5),
+                          Flexible(
+                            child: Text(
+                              '${p.bookingId} · ${farmer?.name ?? '—'}',
+                              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
+                          const SizedBox(width: 8),
                           StatusBadge(label: p.status.label, tone: toneForPaymentStatus(p.status)),
                         ],
                       ),
                       const SizedBox(height: 4),
                       Text(
                         '₹${p.amount.toStringAsFixed(0)} · Updated ${DateFormat('d MMM, h:mm a').format(p.lastUpdated)}',
-                        style: const TextStyle(fontSize: 12, color: AgrivaColors.textSecondary),
+                        style: TextStyle(fontSize: 12, color: AgrivaColors.textSecondaryFor(context)),
                       ),
                       const SizedBox(height: 8),
                       Wrap(

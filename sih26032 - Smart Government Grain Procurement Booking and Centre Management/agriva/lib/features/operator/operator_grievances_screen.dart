@@ -60,9 +60,9 @@ class OperatorGrievancesScreen extends ConsumerWidget {
                 return Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AgrivaColors.surfaceFor(context),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AgrivaColors.border),
+                    border: Border.all(color: AgrivaColors.borderFor(context)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -70,12 +70,19 @@ class OperatorGrievancesScreen extends ConsumerWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(g.category.label, style: const TextStyle(fontWeight: FontWeight.w700)),
+                          Flexible(
+                            child: Text(
+                              g.category.label,
+                              style: const TextStyle(fontWeight: FontWeight.w700),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
                           StatusBadge(label: g.status.label, tone: toneForGrievanceStatus(g.status)),
                         ],
                       ),
                       const SizedBox(height: 6),
-                      Text(g.description, style: const TextStyle(fontSize: 13, color: AgrivaColors.textSecondary)),
+                      Text(g.description, style: TextStyle(fontSize: 13, color: AgrivaColors.textSecondaryFor(context))),
                       if (g.status == GrievanceStatus.open || g.status == GrievanceStatus.inReview) ...[
                         const SizedBox(height: 10),
                         Row(

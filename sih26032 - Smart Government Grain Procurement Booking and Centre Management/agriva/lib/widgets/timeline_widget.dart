@@ -44,7 +44,7 @@ class _TimelineRow extends StatelessWidget {
       TimelineStepState.done => (AgrivaColors.success, Icons.check),
       TimelineStepState.active => (AgrivaColors.primary, null),
       TimelineStepState.blocked => (AgrivaColors.warning, Icons.priority_high),
-      TimelineStepState.pending => (AgrivaColors.textMuted, null),
+      TimelineStepState.pending => (AgrivaColors.textMutedFor(context), null),
     };
 
     return IntrinsicHeight(
@@ -59,7 +59,7 @@ class _TimelineRow extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: data.state == TimelineStepState.pending
-                      ? Colors.white
+                      ? AgrivaColors.surfaceFor(context)
                       : color,
                   border: Border.all(color: color, width: 2),
                 ),
@@ -102,17 +102,17 @@ class _TimelineRow extends StatelessWidget {
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: data.state == TimelineStepState.pending
-                          ? AgrivaColors.textMuted
-                          : AgrivaColors.textPrimary,
+                          ? AgrivaColors.textMutedFor(context)
+                          : AgrivaColors.textPrimaryFor(context),
                     ),
                   ),
                   if (data.subtitle != null) ...[
                     const SizedBox(height: 2),
                     Text(
                       data.subtitle!,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12.5,
-                        color: AgrivaColors.textSecondary,
+                        color: AgrivaColors.textSecondaryFor(context),
                       ),
                     ),
                   ],

@@ -89,7 +89,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     final cooldown = otpState.resendCooldownSecondsRemaining;
 
     return Scaffold(
-      backgroundColor: AgrivaColors.background,
+      backgroundColor: AgrivaColors.backgroundFor(context),
       appBar: AppBar(
         title: const Text('Verify Mobile OTP'),
         leading: IconButton(
@@ -125,14 +125,14 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                 Text(
                   l10n.enterOtp,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AgrivaColors.textPrimary),
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AgrivaColors.textPrimaryFor(context)),
                 ),
                 const SizedBox(height: 8),
 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text('Sent to ', style: TextStyle(color: AgrivaColors.textSecondary, fontSize: 13.5)),
+                    Text('Sent to ', style: TextStyle(color: AgrivaColors.textSecondaryFor(context), fontSize: 13.5)),
                     Text(
                       '+91 ${otpState.phone}',
                       style: const TextStyle(fontWeight: FontWeight.w700, color: AgrivaColors.primary, fontSize: 14),
@@ -195,9 +195,9 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AgrivaColors.surfaceFor(context),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AgrivaColors.border, width: 1.5),
+                    border: Border.all(color: AgrivaColors.borderFor(context), width: 1.5),
                   ),
                   child: TextField(
                     controller: _otpController,
@@ -205,11 +205,11 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                     maxLength: 6,
                     textAlign: TextAlign.center,
                     autofocus: true,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 28,
                       letterSpacing: 14,
                       fontWeight: FontWeight.w800,
-                      color: AgrivaColors.textPrimary,
+                      color: AgrivaColors.textPrimaryFor(context),
                     ),
                     decoration: const InputDecoration(
                       border: InputBorder.none,
@@ -240,7 +240,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                     if (cooldown > 0)
                       Text(
                         l10n.resendOtpIn(cooldown),
-                        style: const TextStyle(fontSize: 13, color: AgrivaColors.textMuted, fontWeight: FontWeight.w500),
+                        style: TextStyle(fontSize: 13, color: AgrivaColors.textMutedFor(context), fontWeight: FontWeight.w500),
                       )
                     else
                       TextButton.icon(

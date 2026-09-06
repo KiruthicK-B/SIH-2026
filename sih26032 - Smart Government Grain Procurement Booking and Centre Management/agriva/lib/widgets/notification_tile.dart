@@ -40,7 +40,7 @@ class NotificationTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
         decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: AgrivaColors.border)),
+          border: Border(bottom: BorderSide(color: AgrivaColors.borderFor(context))),
           color: item.read
               ? Colors.transparent
               : AgrivaColors.primaryLight.withValues(alpha: 0.35),
@@ -68,17 +68,17 @@ class NotificationTile extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     item.message,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: AgrivaColors.textSecondary,
+                      color: AgrivaColors.textSecondaryFor(context),
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     DateFormat('d MMM, h:mm a').format(item.timestamp),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
-                      color: AgrivaColors.textMuted,
+                      color: AgrivaColors.textMutedFor(context),
                     ),
                   ),
                   if (item.deliveryFailed)

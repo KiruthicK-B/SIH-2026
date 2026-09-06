@@ -135,7 +135,7 @@ class _Mini extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 11, color: AgrivaColors.textMuted)),
+        Text(label, style: TextStyle(fontSize: 11, color: AgrivaColors.textMutedFor(context))),
         Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
       ],
     );

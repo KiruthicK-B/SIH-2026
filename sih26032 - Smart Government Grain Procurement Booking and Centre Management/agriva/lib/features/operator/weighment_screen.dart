@@ -68,9 +68,9 @@ class _WeighmentScreenState extends ConsumerState<WeighmentScreen> {
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AgrivaColors.surfaceFor(context),
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AgrivaColors.border),
+                      border: Border.all(color: AgrivaColors.borderFor(context)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,7 +78,7 @@ class _WeighmentScreenState extends ConsumerState<WeighmentScreen> {
                         Text('${booking.token} · ${farmer?.name ?? '—'}', style: const TextStyle(fontWeight: FontWeight.w700)),
                         Text(
                           'Expected: ${booking.expectedQuantityQ.toStringAsFixed(1)} Q',
-                          style: const TextStyle(color: AgrivaColors.textSecondary),
+                          style: TextStyle(color: AgrivaColors.textSecondaryFor(context)),
                         ),
                       ],
                     ),

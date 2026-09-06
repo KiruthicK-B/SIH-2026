@@ -10,11 +10,16 @@ services:
       POSTGRES_USER: agriva_user
       POSTGRES_PASSWORD: agriva_password_2026
     ports:
-      - "5432:5432"
+      # Host 5433 -> container 5432: this machine already has a native
+      # Postgres bound to 127.0.0.1:5432, which would silently swallow
+      # connections meant for this container if we reused 5432 on the host.
+      - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
-      - ./seed.sql:/docker-entrypoint-initdb.d/02_seed.sql
+      # schema.sql/seed.sql are reference docs for the relational design in the
+      # README — the actual backend (backend/src/db.js) creates its own
+      # generic id+JSONB tables at boot to mirror the Flutter Repository<T>
+      # contract, so they're intentionally not mounted as init scripts here.
 
   redis:
     image: redis:7-alpine

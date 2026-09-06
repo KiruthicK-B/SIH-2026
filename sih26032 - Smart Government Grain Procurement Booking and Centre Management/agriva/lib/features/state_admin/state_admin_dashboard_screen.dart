@@ -116,7 +116,7 @@ class StateAdminDashboardScreen extends ConsumerWidget {
                           subtitle: Text(g.description, maxLines: 1, overflow: TextOverflow.ellipsis),
                           trailing: Text(
                             g.status.label,
-                            style: const TextStyle(fontSize: 12, color: AgrivaColors.textSecondary),
+                            style: TextStyle(fontSize: 12, color: AgrivaColors.textSecondaryFor(context)),
                           ),
                         ),
                       );

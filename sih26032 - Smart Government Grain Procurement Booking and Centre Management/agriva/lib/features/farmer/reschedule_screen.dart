@@ -80,21 +80,21 @@ class _RescheduleScreenState extends ConsumerState<RescheduleScreen> {
                     child: ListView(
                       padding: const EdgeInsets.all(16),
                       children: [
-                        const Text(
+                        Text(
                           'Current Booking',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: AgrivaColors.textSecondary,
+                            color: AgrivaColors.textSecondaryFor(context),
                           ),
                         ),
                         const SizedBox(height: 8),
                         Container(
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: AgrivaColors.surfaceFor(context),
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AgrivaColors.border),
+                            border: Border.all(color: AgrivaColors.borderFor(context)),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -108,17 +108,17 @@ class _RescheduleScreenState extends ConsumerState<RescheduleScreen> {
                               const SizedBox(height: 2),
                               Text(
                                 centre.name,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 12.5,
-                                  color: AgrivaColors.textSecondary,
+                                  color: AgrivaColors.textSecondaryFor(context),
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 '${booking.expectedQuantityQ.toStringAsFixed(0)} Quintals',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 12.5,
-                                  color: AgrivaColors.textSecondary,
+                                  color: AgrivaColors.textSecondaryFor(context),
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -143,21 +143,21 @@ class _RescheduleScreenState extends ConsumerState<RescheduleScreen> {
                         ),
                         const SizedBox(height: 10),
                         if (candidates.isEmpty)
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 20),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 20),
                             child: Text(
                               'No feasible replacement is currently available. You have been moved to Reschedule Required. We will show the next available option as soon as one opens up.',
                               style: TextStyle(
-                                color: AgrivaColors.textSecondary,
+                                color: AgrivaColors.textSecondaryFor(context),
                               ),
                             ),
                           )
                         else
                           Container(
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: AgrivaColors.surfaceFor(context),
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: AgrivaColors.border),
+                              border: Border.all(color: AgrivaColors.borderFor(context)),
                             ),
                             child: Column(
                               children: [
@@ -246,7 +246,7 @@ class _CandidateRow extends StatelessWidget {
               : null,
           border: isLast
               ? null
-              : const Border(bottom: BorderSide(color: AgrivaColors.border)),
+              : Border(bottom: BorderSide(color: AgrivaColors.borderFor(context))),
         ),
         child: RadioGroup<bool>(
           groupValue: selected ? true : null,
@@ -268,9 +268,9 @@ class _CandidateRow extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       '${rec.remainingFarmerSlots}/${slot.maxFarmers} available',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: AgrivaColors.textSecondary,
+                        color: AgrivaColors.textSecondaryFor(context),
                       ),
                     ),
                   ],

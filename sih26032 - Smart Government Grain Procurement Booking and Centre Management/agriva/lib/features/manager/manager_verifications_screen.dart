@@ -48,7 +48,7 @@ class _ManagerVerificationsScreenState
     final pendingAsync = ref.watch(pendingFarmerVerificationsProvider(district));
 
     return Scaffold(
-      backgroundColor: AgrivaColors.background,
+      backgroundColor: AgrivaColors.backgroundFor(context),
       appBar: AgrivaAppBar(
         title: 'District Farmer Verifications',
         subtitle: 'Document Clearance & Approval',
@@ -207,12 +207,12 @@ class _DistrictFarmerCardState extends ConsumerState<_DistrictFarmerCard> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AgrivaColors.surfaceFor(context),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: widget.isEscalated
               ? AgrivaColors.gold
-              : (isPendingOverdue ? AgrivaColors.error : AgrivaColors.border),
+              : (isPendingOverdue ? AgrivaColors.error : AgrivaColors.borderFor(context)),
           width: widget.isEscalated || isPendingOverdue ? 1.5 : 1.0,
         ),
       ),
@@ -231,7 +231,7 @@ class _DistrictFarmerCardState extends ConsumerState<_DistrictFarmerCard> {
                     ),
                     Text(
                       '${farmer.farmerCode} • Assigned: ${farmer.assignedCentreId}',
-                      style: const TextStyle(fontSize: 11.5, color: AgrivaColors.textMuted),
+                      style: TextStyle(fontSize: 11.5, color: AgrivaColors.textMutedFor(context)),
                     ),
                   ],
                 ),
@@ -268,12 +268,12 @@ class _DistrictFarmerCardState extends ConsumerState<_DistrictFarmerCard> {
 
           Text(
             'Address: ${farmer.fullAddress}',
-            style: const TextStyle(fontSize: 12.5, color: AgrivaColors.textSecondary),
+            style: TextStyle(fontSize: 12.5, color: AgrivaColors.textSecondaryFor(context)),
           ),
           const SizedBox(height: 4),
           Text(
             'Phone: ${farmer.phone} • Aadhaar: ${Farmer.maskAadhaar(farmer.aadhaarNumber)}',
-            style: const TextStyle(fontSize: 12.5, color: AgrivaColors.textSecondary),
+            style: TextStyle(fontSize: 12.5, color: AgrivaColors.textSecondaryFor(context)),
           ),
 
           if (widget.isEscalated && farmer.escalationNotes != null) ...[
@@ -295,7 +295,7 @@ class _DistrictFarmerCardState extends ConsumerState<_DistrictFarmerCard> {
                   const SizedBox(height: 4),
                   Text(
                     farmer.escalationNotes ?? '',
-                    style: const TextStyle(fontSize: 12, color: AgrivaColors.textPrimary),
+                    style: TextStyle(fontSize: 12, color: AgrivaColors.textPrimaryFor(context)),
                   ),
                 ],
               ),

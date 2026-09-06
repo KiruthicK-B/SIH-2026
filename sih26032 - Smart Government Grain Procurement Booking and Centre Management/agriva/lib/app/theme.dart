@@ -62,6 +62,12 @@ class AgrivaColors {
 
   static Color primaryFor(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark ? primaryAccentDark : primary;
+
+  static Color backgroundFor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? backgroundDark : background;
+
+  static Color textMutedFor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? textSecondaryDark : textMuted;
 }
 
 class AgrivaTheme {
@@ -81,6 +87,7 @@ class AgrivaTheme {
     final textSecondary = isDark
         ? AgrivaColors.textSecondaryDark
         : AgrivaColors.textSecondary;
+    final textMuted = isDark ? AgrivaColors.textSecondaryDark : AgrivaColors.textMuted;
     final primary = isDark ? AgrivaColors.primaryAccentDark : AgrivaColors.primary;
 
     final base = ThemeData(
@@ -189,7 +196,7 @@ class AgrivaTheme {
           borderSide: const BorderSide(color: AgrivaColors.error, width: 1.5),
         ),
         labelStyle: TextStyle(color: textSecondary, fontSize: 14),
-        hintStyle: const TextStyle(color: AgrivaColors.textMuted, fontSize: 14),
+        hintStyle: TextStyle(color: textMuted, fontSize: 14),
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: surface,
@@ -226,7 +233,7 @@ class AgrivaTheme {
         ),
         bodyLarge: TextStyle(fontSize: 15, color: textPrimary, height: 1.4),
         bodyMedium: TextStyle(fontSize: 13.5, color: textSecondary, height: 1.4),
-        labelSmall: const TextStyle(fontSize: 11, color: AgrivaColors.textMuted),
+        labelSmall: TextStyle(fontSize: 11, color: textMuted),
       ),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: AgrivaColors.primaryDark,
