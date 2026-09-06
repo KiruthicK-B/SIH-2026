@@ -1,5 +1,6 @@
 import { Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { StatusBadge } from '@/components/shared/StatusBadge'
@@ -11,19 +12,18 @@ import { useApplications } from '@/context/ApplicationsContext'
 import type { ApplicationStatus } from '@/data/applications'
 import { formatDate } from '@/lib/utils'
 
-const statusOptions: { value: ApplicationStatus | 'all'; label: string }[] = [
-  { value: 'all', label: 'All statuses' },
-  { value: 'In Progress', label: 'In Progress' },
-  { value: 'Under Review', label: 'Under Review' },
-  { value: 'Approved', label: 'Approved' },
-  { value: 'Completed', label: 'Completed' },
-  { value: 'Rejected', label: 'Rejected' },
-]
+const STATUS_VALUES: ApplicationStatus[] = ['In Progress', 'Under Review', 'Approved', 'Completed', 'Rejected']
 
 export default function Applications() {
+  const { t } = useTranslation()
   const { applications } = useApplications()
   const [query, setQuery] = useState('')
   const [status, setStatus] = useState<string>('all')
+
+  const statusOptions: { value: ApplicationStatus | 'all'; label: string }[] = [
+    { value: 'all', label: t('applications.statusAll') },
+    ...STATUS_VALUES.map((value) => ({ value, label: t(`status.${value}`) })),
+  ]
 
   const filtered = useMemo(() => {
     return applications.filter((a) => {
@@ -37,7 +37,7 @@ export default function Applications() {
 
   return (
     <div>
-      <PageHeader title="My Applications" subtitle="Track every application you've submitted across connected departments." />
+      <PageHeader title={t('applications.title')} subtitle={t('applications.subtitle')} />
 
       <Card>
         <div className="flex flex-col gap-3 border-b border-gray-100 p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -46,7 +46,7 @@ export default function Applications() {
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by ID, service, department…"
+              placeholder={t('applications.searchPlaceholder')}
               className="pl-9"
             />
           </div>
@@ -56,12 +56,12 @@ export default function Applications() {
           <Table>
             <THead>
               <TR>
-                <TH>Application ID</TH>
-                <TH>Service</TH>
-                <TH>Department</TH>
-                <TH>Status</TH>
-                <TH>Last Updated</TH>
-                <TH>Action</TH>
+                <TH>{t('applications.colApplicationId')}</TH>
+                <TH>{t('applications.colService')}</TH>
+                <TH>{t('applications.colDepartment')}</TH>
+                <TH>{t('applications.colStatus')}</TH>
+                <TH>{t('applications.colLastUpdated')}</TH>
+                <TH>{t('applications.colAction')}</TH>
               </TR>
             </THead>
             <TBody>
@@ -76,7 +76,7 @@ export default function Applications() {
                   <TD className="text-gray-500">{formatDate(app.lastUpdated)}</TD>
                   <TD>
                     <Link to={`/applications/${app.id}`} className="text-sm font-medium text-brand-600 hover:text-brand-700">
-                      View details
+                      {t('applications.viewDetails')}
                     </Link>
                   </TD>
                 </TR>
@@ -84,7 +84,7 @@ export default function Applications() {
               {filtered.length === 0 && (
                 <TR>
                   <TD colSpan={6} className="py-10 text-center text-sm text-gray-400">
-                    No applications match your filters.
+                    {t('applications.noMatches')}
                   </TD>
                 </TR>
               )}

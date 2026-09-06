@@ -1,0 +1,177 @@
+{
+  "realm": "onedesk",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginTheme": "keycloak",
+  "accessTokenLifespan": 900,
+  "roles": {
+    "realm": [
+      {
+        "name": "citizen",
+        "description": "Citizen applicant"
+      },
+      {
+        "name": "officer",
+        "description": "Department officer"
+      },
+      {
+        "name": "platform-admin",
+        "description": "Platform administrator"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "onedesk-frontend",
+      "name": "OneDesk Citizen/Officer/Admin Portal",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": [
+        "http://localhost:5190/*"
+      ],
+      "webOrigins": [
+        "http://localhost:5190",
+        "+"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "protocolMappers": [
+        {
+          "name": "department",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "department",
+            "claim.name": "department",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "master-id",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "master_id",
+            "claim.name": "master_id",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "core-api",
+      "name": "OneDesk core-api service audience",
+      "enabled": true,
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "secret": "core-api-dev-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false
+    }
+  ],
+  "users": [
+    {
+      "username": "citizen1",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "citizen1@example.gov.in",
+      "firstName": "Asha",
+      "lastName": "Patil",
+      "attributes": {
+        "master_id": [
+          "CIT-10282"
+        ]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "citizen123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "citizen"
+      ]
+    },
+    {
+      "username": "officer.municipal",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "officer.municipal@example.gov.in",
+      "firstName": "Rohan",
+      "lastName": "Deshmukh",
+      "attributes": {
+        "department": [
+          "Municipal Corporation"
+        ]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "officer123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "officer"
+      ]
+    },
+    {
+      "username": "officer.revenue",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "officer.revenue@example.gov.in",
+      "firstName": "Meera",
+      "lastName": "Kulkarni",
+      "attributes": {
+        "department": [
+          "Revenue Department"
+        ]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "officer123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "officer"
+      ]
+    },
+    {
+      "username": "admin1",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "admin1@example.gov.in",
+      "firstName": "Platform",
+      "lastName": "Admin",
+      "attributes": {},
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "platform-admin"
+      ]
+    }
+  ]
+}

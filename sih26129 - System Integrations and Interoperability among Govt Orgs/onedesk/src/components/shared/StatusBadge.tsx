@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Badge, type BadgeTone } from '@/components/ui/Badge'
 
 const statusToneMap: Record<string, BadgeTone> = {
@@ -6,7 +7,10 @@ const statusToneMap: Record<string, BadgeTone> = {
   Approved: 'success',
   Completed: 'success',
   Rejected: 'danger',
+  'Revalidation Required': 'warning',
   Active: 'success',
+  ACTIVE: 'success',
+  DECEASED: 'danger',
   Revoked: 'danger',
   Expired: 'neutral',
   Open: 'warning',
@@ -22,5 +26,6 @@ const statusToneMap: Record<string, BadgeTone> = {
 }
 
 export function StatusBadge({ status }: { status: string }) {
-  return <Badge tone={statusToneMap[status] ?? 'neutral'}>{status}</Badge>
+  const { t } = useTranslation()
+  return <Badge tone={statusToneMap[status] ?? 'neutral'}>{t(`status.${status}`, { defaultValue: status })}</Badge>
 }

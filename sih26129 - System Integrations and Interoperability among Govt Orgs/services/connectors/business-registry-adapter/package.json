@@ -1,0 +1,12 @@
+{
+  "name": "business-registry-adapter",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Mock legacy SOAP/XML department system — proves the adapter pattern handles non-REST protocols.",
+  "main": "index.js",
+  "scripts": { "start": "node index.js" },
+  "dependencies": {
+    "express": "^4.21.1",
+    "xml2js": "^0.6.2"
+  }
+}

@@ -1,16 +1,20 @@
 import { ArrowLeft, Building2, Calendar, Plug } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { useApplications } from '@/context/ApplicationsContext'
-import { getDepartmentById } from '@/data/departments'
-import { services } from '@/data/services'
+import { useDepartments } from '@/context/DepartmentsContext'
+import { useServices } from '@/context/ServicesContext'
 import { formatDate } from '@/lib/utils'
 
 export default function DepartmentDetails() {
+  const { t } = useTranslation()
   const { id } = useParams<{ id: string }>()
+  const { getDepartmentById } = useDepartments()
   const department = id ? getDepartmentById(id) : undefined
   const { applications } = useApplications()
+  const { services } = useServices()
 
   if (!department) {
     return <Navigate to="/departments" replace />
@@ -22,7 +26,7 @@ export default function DepartmentDetails() {
   return (
     <div>
       <Link to="/departments" className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-700">
-        <ArrowLeft className="h-4 w-4" /> Back to departments
+        <ArrowLeft className="h-4 w-4" /> {t('departmentDetails.backToDepartments')}
       </Link>
 
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
@@ -35,25 +39,30 @@ export default function DepartmentDetails() {
             <p className="mt-1 text-sm text-gray-500">{department.description}</p>
           </div>
         </div>
-        <span className="flex items-center gap-1.5 text-sm font-medium text-success-600">
-          <span className="h-2 w-2 rounded-full bg-success-600" /> Connected
+        <span
+          className={`flex items-center gap-1.5 text-sm font-medium ${department.killSwitchEnabled ? 'text-danger-600' : department.hasLiveConnector ? 'text-success-600' : 'text-gray-500'}`}
+        >
+          <span
+            className={`h-2 w-2 rounded-full ${department.killSwitchEnabled ? 'bg-danger-600' : department.hasLiveConnector ? 'bg-success-600' : 'bg-gray-400'}`}
+          />
+          {department.health}
         </span>
       </div>
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Card className="p-4">
           <p className="flex items-center gap-1.5 text-xs text-gray-500">
-            <Plug className="h-3.5 w-3.5" /> Interface Type
+            <Plug className="h-3.5 w-3.5" /> {t('departmentDetails.interfaceType')}
           </p>
           <p className="mt-1 text-sm font-semibold text-gray-900">{department.interfaceType}</p>
         </Card>
         <Card className="p-4">
-          <p className="text-xs text-gray-500">Services</p>
+          <p className="text-xs text-gray-500">{t('departmentDetails.services')}</p>
           <p className="mt-1 text-sm font-semibold text-gray-900">{department.serviceCount}</p>
         </Card>
         <Card className="p-4">
           <p className="flex items-center gap-1.5 text-xs text-gray-500">
-            <Calendar className="h-3.5 w-3.5" /> Onboarded On
+            <Calendar className="h-3.5 w-3.5" /> {t('departmentDetails.onboardedOn')}
           </p>
           <p className="mt-1 text-sm font-semibold text-gray-900">{formatDate(department.onboardedOn)}</p>
         </Card>
@@ -62,7 +71,7 @@ export default function DepartmentDetails() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Services Offered</CardTitle>
+            <CardTitle>{t('departmentDetails.servicesOfferedTitle')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {departmentServices.map((s) => (
@@ -75,13 +84,13 @@ export default function DepartmentDetails() {
                 <span className="text-xs text-gray-400">{s.processingTime}</span>
               </Link>
             ))}
-            {departmentServices.length === 0 && <p className="text-sm text-gray-400">No listed services.</p>}
+            {departmentServices.length === 0 && <p className="text-sm text-gray-400">{t('departmentDetails.noListedServices')}</p>}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Your Applications with this Department</CardTitle>
+            <CardTitle>{t('departmentDetails.yourApplicationsTitle')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {departmentApplications.map((a) => (
@@ -97,7 +106,7 @@ export default function DepartmentDetails() {
               </Link>
             ))}
             {departmentApplications.length === 0 && (
-              <p className="text-sm text-gray-400">No applications with this department yet.</p>
+              <p className="text-sm text-gray-400">{t('departmentDetails.noApplicationsYet')}</p>
             )}
           </CardContent>
         </Card>

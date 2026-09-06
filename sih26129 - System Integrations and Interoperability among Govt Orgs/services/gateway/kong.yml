@@ -1,0 +1,48 @@
+_format_version: "3.0"
+_transform: true
+
+services:
+  - name: core-api
+    url: http://core-api:3000
+    routes:
+      - name: core-api-route
+        paths:
+          - /api
+        strip_path: true
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 120
+          policy: local
+
+  - name: mdm-service
+    url: http://mdm-service:8000
+    routes:
+      - name: mdm-route
+        paths:
+          - /mdm
+        strip_path: true
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 60
+          policy: local
+
+plugins:
+  - name: cors
+    config:
+      origins:
+        - "http://localhost:5190"
+      methods:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+        - OPTIONS
+      headers:
+        - Accept
+        - Authorization
+        - Content-Type
+      credentials: true
+      max_age: 3600

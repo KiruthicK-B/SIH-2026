@@ -6,10 +6,17 @@ CLAUDE.md
 # OS
 .DS_Store
 
+# Real personal data used for local demo seeding — never commit
+**/digilocker-adapter/seed-data.local.js
+
 # Node / Vite (onedesk)
 node_modules/
 dist/
 *.log
+
+# Python (mdm-service)
+__pycache__/
+*.pyc
 
 # Flutter (agriva)
 **/.dart_tool/

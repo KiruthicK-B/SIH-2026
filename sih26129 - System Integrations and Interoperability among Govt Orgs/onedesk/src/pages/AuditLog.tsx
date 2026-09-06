@@ -1,32 +1,46 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { TBody, TD, TH, THead, TR, Table } from '@/components/ui/Table'
-import { auditActions, auditDepartments, auditLogs, auditResults } from '@/data/auditLogs'
+import { type AuditLogEntry, auditResults } from '@/data/auditLogs'
+import { api } from '@/lib/api'
 import { formatDateTime } from '@/lib/utils'
 
 export default function AuditLog() {
+  const { t } = useTranslation()
   const [department, setDepartment] = useState('all')
   const [action, setAction] = useState('all')
   const [result, setResult] = useState('all')
   const [date, setDate] = useState('')
 
-  const filtered = useMemo(() => {
-    return auditLogs.filter((log) => {
-      const matchesDept = department === 'all' || log.department === department
-      const matchesAction = action === 'all' || log.action === action
-      const matchesResult = result === 'all' || log.result === result
-      const matchesDate = !date || log.timestamp.startsWith(date)
-      return matchesDept && matchesAction && matchesResult && matchesDate
+  const [departments, setDepartments] = useState<string[]>([])
+  const [actions, setActions] = useState<string[]>([])
+  const [logs, setLogs] = useState<AuditLogEntry[]>([])
+
+  useEffect(() => {
+    Promise.all([api.get<string[]>('/audit/departments'), api.get<string[]>('/audit/actions')]).then(([d, a]) => {
+      setDepartments(d)
+      setActions(a)
     })
+  }, [])
+
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (department !== 'all') params.set('department', department)
+    if (action !== 'all') params.set('action', action)
+    if (result !== 'all') params.set('result', result)
+    if (date) params.set('date', date)
+    const qs = params.toString()
+    api.get<AuditLogEntry[]>(`/audit${qs ? `?${qs}` : ''}`).then(setLogs)
   }, [department, action, result, date])
 
   return (
     <div>
-      <PageHeader title="Audit & Compliance" subtitle="Immutable log of every data access and consent event across the platform." />
+      <PageHeader title={t('auditLog.title')} subtitle={t('auditLog.subtitle')} />
 
       <Card>
         <div className="flex flex-wrap items-center gap-3 border-b border-gray-100 p-4">
@@ -34,19 +48,19 @@ export default function AuditLog() {
             value={department}
             onValueChange={setDepartment}
             className="w-52"
-            options={[{ value: 'all', label: 'All departments' }, ...auditDepartments.map((d) => ({ value: d, label: d }))]}
+            options={[{ value: 'all', label: t('auditLog.allDepartments') }, ...departments.map((d) => ({ value: d, label: d }))]}
           />
           <Select
             value={action}
             onValueChange={setAction}
             className="w-44"
-            options={[{ value: 'all', label: 'All actions' }, ...auditActions.map((a) => ({ value: a, label: a }))]}
+            options={[{ value: 'all', label: t('auditLog.allActions') }, ...actions.map((a) => ({ value: a, label: a }))]}
           />
           <Select
             value={result}
             onValueChange={setResult}
             className="w-40"
-            options={[{ value: 'all', label: 'All results' }, ...auditResults.map((r) => ({ value: r, label: r }))]}
+            options={[{ value: 'all', label: t('auditLog.allResults') }, ...auditResults.map((r) => ({ value: r, label: t(`status.${r}`, { defaultValue: r }) }))]}
           />
           <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-40" />
         </div>
@@ -54,16 +68,16 @@ export default function AuditLog() {
           <Table>
             <THead>
               <TR>
-                <TH>Timestamp</TH>
-                <TH>Actor</TH>
-                <TH>Department</TH>
-                <TH>Action</TH>
-                <TH>Resource</TH>
-                <TH>Result</TH>
+                <TH>{t('auditLog.colTimestamp')}</TH>
+                <TH>{t('auditLog.colActor')}</TH>
+                <TH>{t('auditLog.colDepartment')}</TH>
+                <TH>{t('auditLog.colAction')}</TH>
+                <TH>{t('auditLog.colResource')}</TH>
+                <TH>{t('auditLog.colResult')}</TH>
               </TR>
             </THead>
             <TBody>
-              {filtered.map((log) => (
+              {logs.map((log) => (
                 <TR key={log.id}>
                   <TD className="text-gray-500">{formatDateTime(log.timestamp)}</TD>
                   <TD className="font-medium text-gray-900">{log.actor}</TD>
@@ -75,10 +89,10 @@ export default function AuditLog() {
                   </TD>
                 </TR>
               ))}
-              {filtered.length === 0 && (
+              {logs.length === 0 && (
                 <TR>
                   <TD colSpan={6} className="py-10 text-center text-sm text-gray-400">
-                    No audit entries match your filters.
+                    {t('auditLog.noMatches')}
                   </TD>
                 </TR>
               )}

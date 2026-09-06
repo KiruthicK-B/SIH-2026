@@ -1,46 +1,47 @@
-import { createContext, type ReactNode, useContext, useState } from 'react'
-import {
-  type Consent,
-  initialConsents,
-  type PendingConsentRequest,
-  pendingConsentRequests,
-} from '@/data/consents'
+import { createContext, type ReactNode, useContext, useEffect, useState } from 'react'
+import { useAuth } from '@/context/AuthContext'
+import type { Consent, PendingConsentRequest } from '@/data/consents'
+import { api } from '@/lib/api'
 
 interface ConsentsContextValue {
   consents: Consent[]
   pendingRequests: PendingConsentRequest[]
-  allowRequest: (requestId: string) => void
-  denyRequest: (requestId: string) => void
-  revokeConsent: (consentId: string) => void
+  allowRequest: (requestId: string) => Promise<void>
+  denyRequest: (requestId: string) => Promise<void>
+  revokeConsent: (consentId: string) => Promise<void>
 }
 
 const ConsentsContext = createContext<ConsentsContextValue | null>(null)
 
 export function ConsentsProvider({ children }: { children: ReactNode }) {
-  const [consents, setConsents] = useState<Consent[]>(initialConsents)
-  const [pendingRequests, setPendingRequests] = useState<PendingConsentRequest[]>(pendingConsentRequests)
+  const { isAuthenticated } = useAuth()
+  const [consents, setConsents] = useState<Consent[]>([])
+  const [pendingRequests, setPendingRequests] = useState<PendingConsentRequest[]>([])
 
-  const allowRequest = (requestId: string) => {
-    const request = pendingRequests.find((r) => r.id === requestId)
-    if (!request) return
-    const newConsent: Consent = {
-      id: `con-${Date.now()}`,
-      dataCategory: request.dataRequested.join(', '),
-      department: request.department,
-      purpose: request.purpose,
-      status: 'Active',
-      grantedOn: new Date().toISOString().slice(0, 10),
-      validUntil: new Date(Date.now() + 1000 * 60 * 60 * 24 * 60).toISOString().slice(0, 10),
-    }
-    setConsents((prev) => [newConsent, ...prev])
+  const refresh = async () => {
+    const [c, p] = await Promise.all([api.get<Consent[]>('/consents'), api.get<PendingConsentRequest[]>('/consents/pending')])
+    setConsents(c)
+    setPendingRequests(p)
+  }
+
+  useEffect(() => {
+    if (!isAuthenticated) return
+    refresh()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated])
+
+  const allowRequest = async (requestId: string) => {
+    await api.post(`/consents/pending/${requestId}/allow`)
+    await refresh()
+  }
+
+  const denyRequest = async (requestId: string) => {
+    await api.post(`/consents/pending/${requestId}/deny`)
     setPendingRequests((prev) => prev.filter((r) => r.id !== requestId))
   }
 
-  const denyRequest = (requestId: string) => {
-    setPendingRequests((prev) => prev.filter((r) => r.id !== requestId))
-  }
-
-  const revokeConsent = (consentId: string) => {
+  const revokeConsent = async (consentId: string) => {
+    await api.post(`/consents/${consentId}/revoke`)
     setConsents((prev) => prev.map((c) => (c.id === consentId ? { ...c, status: 'Revoked' } : c)))
   }
 

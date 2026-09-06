@@ -1,15 +1,25 @@
 import { Building2, Calendar } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { Card } from '@/components/ui/Card'
-import { grievances } from '@/data/grievances'
+import type { Grievance } from '@/data/grievances'
+import { api } from '@/lib/api'
 import { formatDate } from '@/lib/utils'
 
 export default function Grievances() {
+  const { t } = useTranslation()
+  const [grievances, setGrievances] = useState<Grievance[]>([])
+
+  useEffect(() => {
+    api.get<Grievance[]>('/grievances').then(setGrievances)
+  }, [])
+
   return (
     <div>
-      <PageHeader title="Grievances" subtitle="Track grievances you've raised against connected departments." />
+      <PageHeader title={t('grievances.title')} subtitle={t('grievances.subtitle')} />
 
       <div className="space-y-3">
         {grievances.map((g) => (
@@ -27,7 +37,7 @@ export default function Grievances() {
                 <Building2 className="h-3.5 w-3.5" /> {g.department}
               </span>
               <span className="flex items-center gap-1.5">
-                <Calendar className="h-3.5 w-3.5" /> Filed {formatDate(g.filedOn)}
+                <Calendar className="h-3.5 w-3.5" /> {t('grievances.filedOn', { date: formatDate(g.filedOn) })}
               </span>
               {g.relatedApplication && (
                 <Link to={`/applications/${g.relatedApplication}`} className="font-medium text-brand-600 hover:text-brand-700">

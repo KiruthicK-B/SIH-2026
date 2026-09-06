@@ -1,12 +1,15 @@
 import { ArrowLeft, Building2, CheckCircle2, Clock } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { getServiceById } from '@/data/services'
+import { useServices } from '@/context/ServicesContext'
 
 export default function ServiceDetails() {
+  const { t } = useTranslation()
   const { id } = useParams<{ id: string }>()
+  const { getServiceById } = useServices()
   const service = id ? getServiceById(id) : undefined
 
   if (!service) {
@@ -16,7 +19,7 @@ export default function ServiceDetails() {
   return (
     <div>
       <Link to="/services" className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-700">
-        <ArrowLeft className="h-4 w-4" /> Back to services
+        <ArrowLeft className="h-4 w-4" /> {t('serviceDetails.backToServices')}
       </Link>
 
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
@@ -30,7 +33,7 @@ export default function ServiceDetails() {
           </p>
         </div>
         <Button asChild size="lg">
-          <Link to={`/services/${service.id}/apply`}>Apply for {service.name}</Link>
+          <Link to={`/services/${service.id}/apply`}>{t('serviceDetails.applyFor', { service: service.name })}</Link>
         </Button>
       </div>
 
@@ -38,7 +41,7 @@ export default function ServiceDetails() {
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle>About this service</CardTitle>
+              <CardTitle>{t('serviceDetails.aboutTitle')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm leading-relaxed text-gray-600">{service.description}</p>
@@ -49,7 +52,7 @@ export default function ServiceDetails() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Processing Time</CardTitle>
+              <CardTitle>{t('serviceDetails.processingTimeTitle')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="flex items-center gap-2 text-sm font-medium text-gray-900">
@@ -60,7 +63,7 @@ export default function ServiceDetails() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Required Documents</CardTitle>
+              <CardTitle>{t('serviceDetails.requiredDocumentsTitle')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               {service.requiredDocuments.map((doc) => (

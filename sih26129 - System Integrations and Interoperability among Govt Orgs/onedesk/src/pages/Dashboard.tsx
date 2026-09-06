@@ -1,4 +1,5 @@
 import { ArrowRight, Bell, Briefcase, Building2, CheckCircle2, Clock, FileText, HandHeart, Home as HomeIcon, MessageSquareWarning, ShieldCheck } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { StatCard } from '@/components/shared/StatCard'
 import { StatusBadge } from '@/components/shared/StatusBadge'
@@ -7,22 +8,24 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { TBody, TD, TH, THead, TR, Table } from '@/components/ui/Table'
 import { useApplications } from '@/context/ApplicationsContext'
 import { useConsents } from '@/context/ConsentsContext'
+import { useDepartments } from '@/context/DepartmentsContext'
 import { useNotifications } from '@/context/NotificationsContext'
-import { citizenFacingDepartments as departments } from '@/data/departments'
 import { cn, formatDate, formatDateTime } from '@/lib/utils'
 
-const quickServices = [
-  { label: 'Business License', to: '/services/svc-business-license', icon: Briefcase },
-  { label: 'Property Registration', to: '/services/svc-property-services', icon: HomeIcon },
-  { label: 'Scholarship', to: '/services/svc-scholarship', icon: FileText },
-  { label: 'Welfare Benefits', to: '/services/svc-welfare-schemes', icon: HandHeart },
-  { label: 'Grievance', to: '/grievances', icon: MessageSquareWarning },
-]
-
 export default function Dashboard() {
+  const { t } = useTranslation()
   const { consents } = useConsents()
   const { notifications } = useNotifications()
   const { applications } = useApplications()
+  const { citizenFacingDepartments: departments } = useDepartments()
+
+  const quickServices = [
+    { label: t('dashboard.quickServiceBusinessLicense'), to: '/services/svc-business-license', icon: Briefcase },
+    { label: t('dashboard.quickServicePropertyRegistration'), to: '/services/svc-property-services', icon: HomeIcon },
+    { label: t('dashboard.quickServiceScholarship'), to: '/services/svc-scholarship', icon: FileText },
+    { label: t('dashboard.quickServiceWelfareBenefits'), to: '/services/svc-welfare-schemes', icon: HandHeart },
+    { label: t('dashboard.quickServiceGrievance'), to: '/grievances', icon: MessageSquareWarning },
+  ]
 
   const total = applications.length
   const inProgress = applications.filter((a) => a.status === 'In Progress' || a.status === 'Under Review').length
@@ -42,11 +45,8 @@ export default function Dashboard() {
           className="pointer-events-none absolute inset-y-0 right-0 hidden h-full w-auto max-w-[55%] object-contain object-right opacity-80 sm:block"
         />
         <div className="relative max-w-lg px-6 py-8">
-          <h1 className="text-xl font-semibold text-gray-900">One place for your government services</h1>
-          <p className="mt-1.5 text-sm text-gray-600">
-            OneDesk connects the departments behind the scenes — you sign in once, apply once, and track
-            everything from a single, unified view.
-          </p>
+          <h1 className="text-xl font-semibold text-gray-900">{t('dashboard.heroTitle')}</h1>
+          <p className="mt-1.5 text-sm text-gray-600">{t('dashboard.heroSubtitle')}</p>
         </div>
       </div>
 
@@ -70,7 +70,7 @@ export default function Dashboard() {
           <Card className="border-brand-500/25 p-5 transition-shadow hover:shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">One application, in progress</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">{t('dashboard.oneApplicationInProgress')}</p>
                 <p className="mt-1 text-base font-semibold text-gray-900">
                   {flagshipApp.service} <span className="font-normal text-gray-400">· {flagshipApp.id}</span>
                 </p>
@@ -101,23 +101,23 @@ export default function Dashboard() {
             </div>
 
             <p className="mt-3 flex items-center gap-1 text-xs font-medium text-brand-600">
-              Track your application <ArrowRight className="h-3.5 w-3.5" />
+              {t('dashboard.trackApplication')} <ArrowRight className="h-3.5 w-3.5" />
             </p>
           </Card>
         </Link>
       )}
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard icon={FileText} label="Total Applications" value={total} tone="brand" to="/applications" />
-        <StatCard icon={Clock} label="In Progress" value={inProgress} tone="warning" to="/applications" />
-        <StatCard icon={CheckCircle2} label="Completed" value={completed} tone="success" to="/applications" />
+        <StatCard icon={FileText} label={t('dashboard.statTotalApplications')} value={total} tone="brand" to="/applications" />
+        <StatCard icon={Clock} label={t('dashboard.statInProgress')} value={inProgress} tone="warning" to="/applications" />
+        <StatCard icon={CheckCircle2} label={t('dashboard.statCompleted')} value={completed} tone="success" to="/applications" />
         <StatCard
           icon={ShieldCheck}
-          label="Active Consents"
+          label={t('dashboard.statActiveConsents')}
           value={activeConsents}
           tone="consent"
           to="/consents"
-          linkLabel="Manage consents"
+          linkLabel={t('dashboard.manageConsents')}
         />
       </div>
 
@@ -125,20 +125,20 @@ export default function Dashboard() {
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle>Application Tracker</CardTitle>
+              <CardTitle>{t('dashboard.applicationTracker')}</CardTitle>
               <Link to="/applications" className="text-xs font-medium text-brand-600 hover:text-brand-700">
-                View all applications →
+                {t('dashboard.viewAllApplications')}
               </Link>
             </CardHeader>
             <CardContent className="px-0 pb-0">
               <Table>
                 <THead>
                   <TR>
-                    <TH>Application ID</TH>
-                    <TH>Service</TH>
-                    <TH>Department</TH>
-                    <TH>Status</TH>
-                    <TH>Last Updated</TH>
+                    <TH>{t('dashboard.colApplicationId')}</TH>
+                    <TH>{t('dashboard.colService')}</TH>
+                    <TH>{t('dashboard.colDepartment')}</TH>
+                    <TH>{t('dashboard.colStatus')}</TH>
+                    <TH>{t('dashboard.colLastUpdated')}</TH>
                   </TR>
                 </THead>
                 <TBody>
@@ -166,9 +166,9 @@ export default function Dashboard() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Recent Notifications</CardTitle>
+              <CardTitle>{t('dashboard.recentNotifications')}</CardTitle>
               <Link to="/notifications" className="text-xs font-medium text-brand-600 hover:text-brand-700">
-                View all →
+                {t('dashboard.viewAll')}
               </Link>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -189,9 +189,9 @@ export default function Dashboard() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Departments</CardTitle>
+              <CardTitle>{t('dashboard.departmentsCardTitle')}</CardTitle>
               <Link to="/departments" className="text-xs font-medium text-brand-600 hover:text-brand-700">
-                View all →
+                {t('dashboard.viewAll')}
               </Link>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -207,11 +207,13 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-900">{d.name}</p>
-                      <p className="text-xs text-gray-500">{d.serviceCount} services</p>
+                      <p className="text-xs text-gray-500">{t('dashboard.servicesCount', { count: d.serviceCount })}</p>
                     </div>
                   </div>
-                  <span className="flex items-center gap-1 text-xs font-medium text-success-600">
-                    <span className="h-1.5 w-1.5 rounded-full bg-success-600" /> Connected
+                  <span
+                    className={`flex items-center gap-1 text-xs font-medium ${d.hasLiveConnector ? 'text-success-600' : 'text-gray-500'}`}
+                  >
+                    <span className={`h-1.5 w-1.5 rounded-full ${d.hasLiveConnector ? 'bg-success-600' : 'bg-gray-400'}`} /> {d.health}
                   </span>
                 </Link>
               ))}
@@ -223,9 +225,9 @@ export default function Dashboard() {
       <div className="mt-6">
         <Card>
           <CardHeader>
-            <CardTitle>My Consents</CardTitle>
+            <CardTitle>{t('dashboard.myConsents')}</CardTitle>
             <Button variant="outline" size="sm" asChild>
-              <Link to="/consents">Manage consents</Link>
+              <Link to="/consents">{t('dashboard.manageConsents')}</Link>
             </Button>
           </CardHeader>
           <CardContent className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -236,7 +238,7 @@ export default function Dashboard() {
                   <StatusBadge status={c.status} />
                 </div>
                 <p className="text-xs text-gray-500">{c.department}</p>
-                <p className="mt-2 text-xs text-gray-400">Valid until {formatDate(c.validUntil)}</p>
+                <p className="mt-2 text-xs text-gray-400">{t('dashboard.validUntil', { date: formatDate(c.validUntil) })}</p>
               </div>
             ))}
           </CardContent>

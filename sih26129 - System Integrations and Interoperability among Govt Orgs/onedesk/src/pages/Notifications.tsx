@@ -1,4 +1,5 @@
 import { Bell, CheckCircle2, FileText, ShieldCheck } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -13,16 +14,17 @@ const iconByType = {
 }
 
 export default function Notifications() {
+  const { t } = useTranslation()
   const { notifications, markAsRead, markAllAsRead } = useNotifications()
 
   return (
     <div>
       <PageHeader
-        title="Notifications"
-        subtitle="Updates on your applications, consent requests, and platform activity."
+        title={t('notifications.title')}
+        subtitle={t('notifications.subtitle')}
         action={
           <Button variant="outline" size="sm" onClick={markAllAsRead}>
-            Mark all as read
+            {t('notifications.markAllAsRead')}
           </Button>
         }
       />

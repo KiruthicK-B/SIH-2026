@@ -1,18 +1,33 @@
-const layerLabels = ['Identity', 'Consent', 'Data Mapping', 'Workflow', 'Validation', 'Events', 'Audit']
-
-const departments = ['Education\nDepartment', 'Revenue\nDepartment', 'Municipal\nCorporation', 'Health\nDepartment']
+import { useTranslation } from 'react-i18next'
 
 export function DataFlowDiagram() {
+  const { t } = useTranslation()
+  const layerLabels = [
+    t('dataFlowDiagram.layerIdentity'),
+    t('dataFlowDiagram.layerConsent'),
+    t('dataFlowDiagram.layerDataMapping'),
+    t('dataFlowDiagram.layerWorkflow'),
+    t('dataFlowDiagram.layerValidation'),
+    t('dataFlowDiagram.layerEvents'),
+    t('dataFlowDiagram.layerAudit'),
+  ]
+  const departments = [
+    t('dataFlowDiagram.deptEducation'),
+    t('dataFlowDiagram.deptRevenue'),
+    t('dataFlowDiagram.deptMunicipal'),
+    t('dataFlowDiagram.deptHealth'),
+  ]
+
   return (
     <div className="flex flex-col items-center py-4">
-      <FlowBox label="Citizen" />
+      <FlowBox label={t('dataFlowDiagram.citizen')} />
       <Connector />
-      <FlowBox label="Unified Portal" />
+      <FlowBox label={t('dataFlowDiagram.unifiedPortal')} />
       <Connector />
 
       <div className="w-full max-w-2xl rounded-lg border-2 border-navy-800/20 bg-navy-800/[0.03] p-4">
         <p className="mb-3 text-center text-xs font-semibold uppercase tracking-wide text-navy-800">
-          Interoperability Layer
+          {t('dataFlowDiagram.interoperabilityLayer')}
         </p>
         <div className="flex flex-wrap justify-center gap-2">
           {layerLabels.map((label) => (

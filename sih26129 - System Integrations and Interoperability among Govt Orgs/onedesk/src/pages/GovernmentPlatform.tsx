@@ -1,4 +1,4 @@
-import { RequirePlatformAccess } from '@/components/layout/RequirePlatformAccess'
+import { useTranslation } from 'react-i18next'
 import { ConnectedSystemsTab } from '@/components/platform/ConnectedSystemsTab'
 import { ConsentAccessTab } from '@/components/platform/ConsentAccessTab'
 import { DataQualityTab } from '@/components/platform/DataQualityTab'
@@ -12,45 +12,47 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
 import { useRole } from '@/context/RoleContext'
 
+// Ordered to read top-to-bottom as a monitoring layer: the whole system first
+// (Overview), then how data actually moves through it (Data Mapping), then
+// progressively narrower detail views.
 export default function GovernmentPlatform() {
+  const { t } = useTranslation()
   const { role } = useRole()
+  const roleLabel = t(`roles.${role}`, { defaultValue: role })
 
   return (
-    <RequirePlatformAccess>
-      <PageHeader
-        title="Government Platform"
-        subtitle={`Signed in as ${role} — one connected view of the otherwise fragmented department ecosystem.`}
-      />
+    <>
+      <PageHeader title={t('governmentPlatform.title')} subtitle={t('governmentPlatform.subtitle', { role: roleLabel })} />
 
       <Tabs defaultValue="overview">
         <div className="overflow-x-auto">
           <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="systems">Connected Systems</TabsTrigger>
-            <TabsTrigger value="workflows">Workflows</TabsTrigger>
-            <TabsTrigger value="standards">Data Standards</TabsTrigger>
-            <TabsTrigger value="quality">Data Quality</TabsTrigger>
-            <TabsTrigger value="consent">Consent & Access</TabsTrigger>
-            <TabsTrigger value="exceptions">Exceptions</TabsTrigger>
-            <TabsTrigger value="sla">SLA Monitoring</TabsTrigger>
-            <TabsTrigger value="modernization">Modernization</TabsTrigger>
+            <TabsTrigger value="overview">{t('governmentPlatform.tabOverview')}</TabsTrigger>
+            <TabsTrigger value="standards">{t('governmentPlatform.tabStandards')}</TabsTrigger>
+            <TabsTrigger value="quality">{t('governmentPlatform.tabQuality')}</TabsTrigger>
+            <TabsTrigger value="systems">{t('governmentPlatform.tabSystems')}</TabsTrigger>
+            <TabsTrigger value="workflows">{t('governmentPlatform.tabWorkflows')}</TabsTrigger>
+            <TabsTrigger value="consent">{t('governmentPlatform.tabConsent')}</TabsTrigger>
+            <TabsTrigger value="exceptions">{t('governmentPlatform.tabExceptions')}</TabsTrigger>
+            <TabsTrigger value="sla">{t('governmentPlatform.tabSla')}</TabsTrigger>
+            <TabsTrigger value="modernization">{t('governmentPlatform.tabModernization')}</TabsTrigger>
           </TabsList>
         </div>
 
         <TabsContent value="overview">
           <OverviewTab />
         </TabsContent>
-        <TabsContent value="systems">
-          <ConnectedSystemsTab />
-        </TabsContent>
-        <TabsContent value="workflows">
-          <WorkflowsTab />
-        </TabsContent>
         <TabsContent value="standards">
           <DataStandardsTab />
         </TabsContent>
         <TabsContent value="quality">
           <DataQualityTab />
+        </TabsContent>
+        <TabsContent value="systems">
+          <ConnectedSystemsTab />
+        </TabsContent>
+        <TabsContent value="workflows">
+          <WorkflowsTab />
         </TabsContent>
         <TabsContent value="consent">
           <ConsentAccessTab />
@@ -65,6 +67,6 @@ export default function GovernmentPlatform() {
           <ModernizationTab />
         </TabsContent>
       </Tabs>
-    </RequirePlatformAccess>
+    </>
   )
 }

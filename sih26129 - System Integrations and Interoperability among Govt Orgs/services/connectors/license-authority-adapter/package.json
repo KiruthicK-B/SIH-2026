@@ -1,0 +1,9 @@
+{
+  "name": "license-authority-adapter",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Mock License Authority system — GraphQL API, final approval step.",
+  "main": "index.js",
+  "scripts": { "start": "node index.js" },
+  "dependencies": { "express": "^4.21.1", "graphql": "^16.9.0", "graphql-yoga": "^5.10.3" }
+}

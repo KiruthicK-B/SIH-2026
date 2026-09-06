@@ -1,13 +1,15 @@
 import { createContext, type ReactNode, useContext, useMemo, useState } from 'react'
 import { useApplications } from '@/context/ApplicationsContext'
+import { useDepartments } from '@/context/DepartmentsContext'
+import { useServices } from '@/context/ServicesContext'
 import type { Application } from '@/data/applications'
-import { citizenFacingDepartments as departments } from '@/data/departments'
-import { services } from '@/data/services'
+import type { Department } from '@/data/departments'
+import type { Service } from '@/data/services'
 
 interface SearchResultGroup {
   applications: Application[]
-  services: typeof services
-  departments: typeof departments
+  services: Service[]
+  departments: Department[]
 }
 
 interface SearchContextValue {
@@ -21,6 +23,8 @@ const SearchContext = createContext<SearchContextValue | null>(null)
 export function SearchProvider({ children }: { children: ReactNode }) {
   const [query, setQuery] = useState('')
   const { applications } = useApplications()
+  const { citizenFacingDepartments: departments } = useDepartments()
+  const { services } = useServices()
 
   const results = useMemo<SearchResultGroup>(() => {
     const q = query.trim().toLowerCase()
@@ -34,7 +38,7 @@ export function SearchProvider({ children }: { children: ReactNode }) {
       services: services.filter((s) => s.name.toLowerCase().includes(q) || s.department.toLowerCase().includes(q)),
       departments: departments.filter((d) => d.name.toLowerCase().includes(q)),
     }
-  }, [query, applications])
+  }, [query, applications, departments, services])
 
   return <SearchContext.Provider value={{ query, setQuery, results }}>{children}</SearchContext.Provider>
 }

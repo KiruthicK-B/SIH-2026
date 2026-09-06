@@ -1,16 +1,20 @@
 import { Building2, Clock, FileStack } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { Card } from '@/components/ui/Card'
-import { getServicesByCategory, serviceCategories } from '@/data/services'
+import { useServices } from '@/context/ServicesContext'
 
 export default function Services() {
+  const { t } = useTranslation()
+  const { categories, getServicesByCategory } = useServices()
+
   return (
     <div>
-      <PageHeader title="Government Services" subtitle="Access services from connected departments through one platform." />
+      <PageHeader title={t('services.title')} subtitle={t('services.subtitle')} />
 
       <div className="space-y-8">
-        {serviceCategories.map((category) => (
+        {categories.map((category) => (
           <section key={category}>
             <h2 className="mb-3 text-sm font-semibold text-gray-900">{category}</h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -27,7 +31,7 @@ export default function Services() {
                         <Clock className="h-3.5 w-3.5" /> {service.processingTime}
                       </span>
                       <span className="flex items-center gap-1.5 text-xs text-gray-500">
-                        <FileStack className="h-3.5 w-3.5" /> {service.requiredDocuments.length} docs
+                        <FileStack className="h-3.5 w-3.5" /> {t('services.docsCount', { count: service.requiredDocuments.length })}
                       </span>
                     </div>
                   </Card>

@@ -1,8 +1,7 @@
+import { useTranslation } from 'react-i18next'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Progress } from '@/components/ui/Progress'
-import { departments } from '@/data/departments'
-
-const stages = ['Integrate', 'Standardize', 'Modernize', 'Migrate', 'Retire Legacy']
+import { useDepartments } from '@/context/DepartmentsContext'
 
 function stageIndex(percent: number) {
   if (percent >= 100) return 4
@@ -13,12 +12,19 @@ function stageIndex(percent: number) {
 }
 
 export function ModernizationTab() {
+  const { t } = useTranslation()
+  const { departments } = useDepartments()
+  const stages = [
+    t('modernizationTab.stageIntegrate'),
+    t('modernizationTab.stageStandardize'),
+    t('modernizationTab.stageModernize'),
+    t('modernizationTab.stageMigrate'),
+    t('modernizationTab.stageRetireLegacy'),
+  ]
+
   return (
     <div className="space-y-4">
-      <p className="text-sm text-gray-500">
-        Legacy systems aren't replaced overnight. Each department moves through the same pipeline at its own
-        pace, without ever blocking the interoperability layer above it.
-      </p>
+      <p className="text-sm text-gray-500">{t('modernizationTab.intro')}</p>
 
       <Card>
         <CardContent className="space-y-6 pt-5">
@@ -32,7 +38,7 @@ export function ModernizationTab() {
                     <div>
                       <p className="text-sm font-medium text-gray-900">{d.name}</p>
                       <p className="text-xs text-gray-500">
-                        Current: {d.interfaceType} → Target: {d.modernization.target}
+                        {t('modernizationTab.currentTarget', { current: d.interfaceType, target: d.modernization.target })}
                       </p>
                     </div>
                     <span className="text-xs font-medium text-gray-500">{d.modernization.status}</span>

@@ -1,8 +1,10 @@
 import { AlertTriangle, Check } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { TimelineStep } from '@/data/applications'
 import { cn, formatDate } from '@/lib/utils'
 
 export function ApplicationTimeline({ steps }: { steps: TimelineStep[] }) {
+  const { t } = useTranslation()
   return (
     <ol>
       {steps.map((step, idx) => {
@@ -55,11 +57,11 @@ export function ApplicationTimeline({ steps }: { steps: TimelineStep[] }) {
               <p className="mt-0.5 text-xs text-gray-500">{step.department}</p>
               {step.date && <p className="mt-0.5 text-xs text-gray-400">{formatDate(step.date)}</p>}
               {step.status === 'active' && !step.date && (
-                <p className="mt-0.5 text-xs font-medium text-brand-600">In progress</p>
+                <p className="mt-0.5 text-xs font-medium text-brand-600">{t('timeline.inProgress')}</p>
               )}
               {step.status === 'blocked' && (
                 <p className="mt-1 text-xs font-medium text-warning-700">
-                  {step.note ?? 'System temporarily unavailable — retry scheduled.'}
+                  {step.note ?? t('timeline.defaultBlockedNote')}
                 </p>
               )}
             </div>

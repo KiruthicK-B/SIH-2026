@@ -1,5 +1,6 @@
-import { Building2, Check, ShieldCheck, X } from 'lucide-react'
+import { AlertTriangle, Building2, Check, ShieldCheck, X } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { Button } from '@/components/ui/Button'
@@ -7,35 +8,41 @@ import { Card, CardContent } from '@/components/ui/Card'
 import { Modal } from '@/components/ui/Modal'
 import { useToast } from '@/components/ui/Toast'
 import { useConsents } from '@/context/ConsentsContext'
+import { ApiError } from '@/lib/api'
 import { formatDate } from '@/lib/utils'
 
 export default function Consents() {
+  const { t } = useTranslation()
   const { consents, pendingRequests, allowRequest, denyRequest, revokeConsent } = useConsents()
   const { showToast } = useToast()
   const [activeRequestId, setActiveRequestId] = useState<string | null>(null)
 
   const activeRequest = pendingRequests.find((r) => r.id === activeRequestId) ?? null
 
-  const handleAllow = () => {
+  const handleAllow = async () => {
     if (!activeRequest) return
-    allowRequest(activeRequest.id)
-    showToast(
-      'Consent granted successfully',
-      `${activeRequest.department} can now access ${activeRequest.dataRequested.join(', ')} for the selected purpose.`,
-    )
-    setActiveRequestId(null)
+    try {
+      await allowRequest(activeRequest.id)
+      showToast(
+        t('consents.grantedToastTitle'),
+        t('consents.grantedToastDescription', { department: activeRequest.department, data: activeRequest.dataRequested.join(', ') }),
+      )
+      setActiveRequestId(null)
+    } catch (err) {
+      showToast(t('consents.grantFailedTitle'), err instanceof ApiError ? err.message : t('consents.genericError'))
+    }
   }
 
   const handleDeny = () => {
     if (!activeRequest) return
     denyRequest(activeRequest.id)
-    showToast('Consent request denied', `${activeRequest.department} was not granted access.`)
+    showToast(t('consents.deniedToastTitle'), t('consents.deniedToastDescription', { department: activeRequest.department }))
     setActiveRequestId(null)
   }
 
   return (
     <div>
-      <PageHeader title="My Consents" subtitle="Review and manage which departments can access your data, and for what purpose." />
+      <PageHeader title={t('consents.title')} subtitle={t('consents.subtitle')} />
 
       {pendingRequests.length > 0 && (
         <div className="mb-6 space-y-3">
@@ -46,13 +53,19 @@ export default function Consents() {
                   <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-consent-600" />
                   <div>
                     <p className="text-sm font-semibold text-gray-900">
-                      {req.department} requested access to {req.dataRequested.join(' & ')}
+                      {t('consents.requestedAccess', { department: req.department, data: req.dataRequested.join(' & ') })}
                     </p>
-                    <p className="mt-0.5 text-xs text-gray-500">Purpose: {req.purpose}</p>
+                    <p className="mt-0.5 text-xs text-gray-500">{t('consents.purposeLabel', { purpose: req.purpose })}</p>
+                    {!req.eligible && (
+                      <p className="mt-1.5 flex items-start gap-1 text-xs font-medium text-danger-600">
+                        <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                        {t('consents.notEligiblePrefix')} {req.eligibilityReasons.join('; ')}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <Button size="sm" onClick={() => setActiveRequestId(req.id)}>
-                  Manage Consent
+                  {t('consents.manageConsent')}
                 </Button>
               </CardContent>
             </Card>
@@ -70,19 +83,19 @@ export default function Consents() {
             <p className="flex items-center gap-1.5 text-xs text-gray-500">
               <Building2 className="h-3.5 w-3.5" /> {c.department}
             </p>
-            <p className="mt-3 text-xs text-gray-500">Purpose</p>
+            <p className="mt-3 text-xs text-gray-500">{t('consents.purpose')}</p>
             <p className="text-sm text-gray-700">{c.purpose}</p>
             <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-3">
-              <p className="text-xs text-gray-400">Valid until {formatDate(c.validUntil)}</p>
+              <p className="text-xs text-gray-400">{t('consents.validUntil', { date: formatDate(c.validUntil) })}</p>
               {c.status === 'Active' && (
                 <button
                   onClick={() => {
                     revokeConsent(c.id)
-                    showToast('Consent revoked', `${c.department} no longer has access to ${c.dataCategory}.`)
+                    showToast(t('consents.revokedToastTitle'), t('consents.revokedToastDescription', { department: c.department, dataCategory: c.dataCategory }))
                   }}
                   className="text-xs font-medium text-danger-600 hover:text-danger-700"
                 >
-                  Revoke
+                  {t('consents.revoke')}
                 </button>
               )}
             </div>
@@ -93,13 +106,13 @@ export default function Consents() {
       <Modal
         open={!!activeRequest}
         onOpenChange={(open) => !open && setActiveRequestId(null)}
-        title="Manage Consent"
-        description="Review the data being requested before allowing access."
+        title={t('consents.modalTitle')}
+        description={t('consents.modalDescription')}
       >
         {activeRequest && (
           <div className="space-y-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Data Requested</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">{t('consents.dataRequested')}</p>
               <ul className="mt-1.5 space-y-1">
                 {activeRequest.dataRequested.map((d) => (
                   <li key={d} className="text-sm text-gray-700">
@@ -109,19 +122,32 @@ export default function Consents() {
               </ul>
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Requesting Department</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">{t('consents.requestingDepartment')}</p>
               <p className="mt-1 text-sm text-gray-700">{activeRequest.department}</p>
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Purpose</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">{t('consents.purpose')}</p>
               <p className="mt-1 text-sm text-gray-700">{activeRequest.purpose}</p>
             </div>
+            {!activeRequest.eligible && (
+              <div className="flex items-start gap-2 rounded-md bg-danger-50 px-3 py-2 text-xs text-danger-700">
+                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                <div>
+                  <p className="font-semibold">{t('consents.notEligibleFor', { department: activeRequest.department })}</p>
+                  <ul className="mt-1 list-disc space-y-0.5 pl-4">
+                    {activeRequest.eligibilityReasons.map((r) => (
+                      <li key={r}>{r}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
             <div className="flex gap-3 pt-2">
-              <Button onClick={handleAllow} className="flex-1">
-                <Check className="h-4 w-4" /> Allow
+              <Button onClick={handleAllow} className="flex-1" disabled={!activeRequest.eligible}>
+                <Check className="h-4 w-4" /> {t('consents.allow')}
               </Button>
               <Button onClick={handleDeny} variant="outline" className="flex-1">
-                <X className="h-4 w-4" /> Deny
+                <X className="h-4 w-4" /> {t('consents.deny')}
               </Button>
             </div>
           </div>
