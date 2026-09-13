@@ -35,6 +35,51 @@ All five should return 200. See the build plan's Verification section for the fu
 checklist (auth, orchestration, kill-switch, consent enforcement, RBAC) that applies
 once the later phases land.
 
+## Live department portals (Trade & Establishment Clearance)
+
+Three independently-run department systems — own backend protocol, own database
+engine, own officer login — that core-api's Trade & Establishment Clearance flow
+submits to for real, asynchronous human review. See
+[`../LIVE_DEPARTMENT_PORTALS_PLAN.md`](../LIVE_DEPARTMENT_PORTALS_PLAN.md) for the
+full design; this is the boot/verify cheat sheet.
+
+```sh
+cd services
+docker compose -f docker-compose.dept-portals.yml up --build
+```
+
+Joins the main stack's network (`onedesk_default`) — boot `docker-compose.yml` first.
+
+| Portal | Protocol · DB | Officer UI | Backend |
+|---|---|---|---|
+| Business Registry | SOAP/XML · MySQL | http://localhost:5301 | :4301 |
+| License Authority | GraphQL · MongoDB | http://localhost:5302 | :4302 |
+| Revenue Department | REST/JSON · PostgreSQL | http://localhost:5303 | :4303 |
+
+Each portal's officer login is `admin1` / `admin123` — local to that portal, not
+Keycloak, not OneDesk, by design (a real siloed government system wouldn't share
+your IdP either), and shared across all three rather than a different account per
+portal.
+
+Each officer UI is live — a stats strip, status tabs, and an `EventSource` connection
+(`GET /api/events?token=...`, same pattern as core-api's own
+`applications-events.controller.ts`) push new/decided cases into the list the moment
+core-api submits or an officer somewhere else decides. The header's ● Live / ●
+Offline pill reflects the stream's actual connection state.
+
+To see the flow end-to-end: apply for "Trade & Establishment Clearance" as a citizen
+in the OneDesk frontend, grant each department's consent request as it comes up on
+the application page, then sign in to each portal above (in order — Business
+Registry, then License Authority, then Revenue) and Approve the case. Each approval
+fires a signed webhook back to core-api (`POST /interop/dept-callback/:department`,
+HMAC-verified) that auto-advances the application to the next department.
+
+```sh
+curl http://localhost:4301/health   # business-registry-portal
+curl http://localhost:4302/health   # license-authority-portal
+curl http://localhost:4303/health   # revenue-portal
+```
+
 ## Frontend wiring
 
 Point `onedesk/.env.local` at the Kong proxy — see `.env.example` in this folder.

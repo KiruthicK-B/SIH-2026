@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Business Registry — Verification Portal</title>
+<style>
+  :root {
+    color-scheme: light;
+    --ink: #131a27;
+    --ink-soft: #525c6d;
+    --ink-faint: #848d9e;
+    --line: #d5dae3;
+    --line-soft: #e8ebf1;
+    --canvas: #eef0f4;
+    --panel: #ffffff;
+    --brand: #10254a;
+    --brand-dark: #0b1a36;
+    --brand-soft: #e6ecf7;
+    --accent: #163f8a;
+    --pending: #9a5808;
+    --pending-bg: #fdefd8;
+    --ok: #163f8a;
+    --ok-bg: #dde6f7;
+    --bad: #a11f24;
+    --bad-bg: #f8e2e2;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: ui-sans-serif, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    background: var(--canvas);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  a { color: var(--accent); }
+
+  .gov-strip {
+    background: var(--brand-dark);
+    color: #c6d2e6;
+    font-size: 11.5px;
+    padding: 5px 24px;
+    display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  }
+  .gov-strip .right { font-family: var(--mono); opacity: 0.85; }
+  .tricolour { height: 3px; background: linear-gradient(to right, #ff9933 0 33.3%, #ffffff 33.3% 66.6%, #138808 66.6% 100%); }
+
+  header.masthead {
+    background: var(--panel); border-bottom: 1px solid var(--line); padding: 14px 24px;
+    display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: center; gap: 13px; }
+  .seal {
+    width: 42px; height: 42px; flex: none; border-radius: 50%;
+    border: 2px solid var(--brand); color: var(--brand);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px; letter-spacing: 0.03em;
+  }
+  .brand h1 { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+  .brand .sub { font-size: 11.5px; color: var(--ink-faint); margin-top: 1px; }
+  .brand .sub b { color: var(--ink-soft); font-weight: 600; }
+
+  .masthead-right { display: flex; align-items: center; gap: 16px; }
+  .live-pill { display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-family: var(--mono); color: var(--accent); }
+  .live-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: #3c7fe0; box-shadow: 0 0 0 3px rgba(60,127,224,0.18); }
+  .live-pill.off { color: var(--pending); }
+  .live-pill.off .dot { background: #cf9439; box-shadow: none; animation: pulse 1.3s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: 0.3 } }
+  .officer-box { text-align: right; line-height: 1.3; }
+  .officer-box .who { font-size: 12.5px; font-weight: 600; }
+  .officer-box .role { font-size: 10.5px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.05em; }
+  .btn-ghost { background: transparent; border: 1px solid var(--line); color: var(--ink-soft); padding: 6px 12px; border-radius: 3px; cursor: pointer; font-size: 12.5px; font-family: inherit; }
+  .btn-ghost:hover { background: var(--canvas); }
+
+  .crumbs { padding: 9px 24px; font-size: 11.5px; color: var(--ink-faint); background: #f6f7fa; border-bottom: 1px solid var(--line-soft); }
+  .crumbs b { color: var(--ink-soft); font-weight: 600; }
+
+  main { max-width: 1320px; margin: 0 auto; padding: 22px 24px 40px; }
+
+  .login-wrap { max-width: 380px; margin: 60px auto; }
+  .login-card { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+  .login-card .cap { background: var(--brand); color: #fff; padding: 12px 22px; font-size: 13px; font-weight: 600; }
+  .login-card .body { padding: 22px; }
+  .login-card p.note { font-size: 12px; color: var(--ink-faint); margin: 0 0 16px; }
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 11px; color: var(--ink-soft); margin-bottom: 4px; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.05em; }
+  .field input, .field textarea {
+    width: 100%; padding: 8px 10px; border: 1px solid #c2c9d4; border-radius: 3px;
+    font-size: 13.5px; font-family: inherit; background: #fff; color: var(--ink);
+  }
+  .field input:focus, .field textarea:focus { outline: 2px solid var(--brand-soft); border-color: var(--brand); }
+  .field textarea { resize: vertical; min-height: 74px; }
+  .btn { background: var(--accent); color: #fff; border: none; padding: 9px 17px; border-radius: 3px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .btn:hover { background: var(--brand-dark); }
+  .btn.reject { background: var(--bad); }
+  .btn.reject:hover { background: #851a1e; }
+  .btn.outline { background: #fff; color: var(--accent); border: 1px solid var(--accent); }
+  .btn.outline:hover { background: var(--brand-soft); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn.sm { padding: 5px 11px; font-size: 12px; }
+  .error { color: var(--bad); font-size: 12.5px; margin-top: 9px; }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--ink-faint); border-radius: 3px; padding: 12px 15px; }
+  .stat .n { font-size: 25px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .stat .l { font-size: 10.5px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 3px; font-family: var(--mono); }
+  .stat.pending { border-left-color: #cf9439; } .stat.pending .n { color: var(--pending); }
+  .stat.approved { border-left-color: var(--ok); } .stat.approved .n { color: var(--ok); }
+  .stat.rejected { border-left-color: var(--bad); } .stat.rejected .n { color: var(--bad); }
+  .stat.total { border-left-color: var(--brand); } .stat.total .n { color: var(--brand); }
+
+  .layout { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 20px; align-items: start; }
+  @media (max-width: 1000px) { .layout { grid-template-columns: 1fr; } }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+  .panel-cap { background: #f4f6fa; border-bottom: 1px solid var(--line); padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .panel-cap h2 { margin: 0; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-soft); font-family: var(--mono); }
+  .panel-cap .count { font-size: 11px; color: var(--ink-faint); font-family: var(--mono); }
+
+  .queue-controls { padding: 10px 12px; border-bottom: 1px solid var(--line-soft); display: flex; flex-direction: column; gap: 8px; }
+  .search-row { position: relative; }
+  .search-row input { width: 100%; padding: 7px 10px 7px 28px; border: 1px solid #c2c9d4; border-radius: 3px; font-size: 12.5px; font-family: inherit; }
+  .search-row svg { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); color: var(--ink-faint); }
+  .tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+  .tab { font-size: 11.5px; padding: 4px 10px; border-radius: 3px; cursor: pointer; color: var(--ink-soft); border: 1px solid var(--line); background: #fff; font-family: inherit; }
+  .tab:hover { background: #f4f6fa; }
+  .tab.active { background: var(--brand); border-color: var(--brand); color: #fff; font-weight: 600; }
+
+  .case-list { max-height: 620px; overflow-y: auto; }
+  .case-row { padding: 11px 15px; border-bottom: 1px solid var(--line-soft); cursor: pointer; border-left: 3px solid transparent; }
+  .case-row:hover { background: #f6f7fa; }
+  .case-row.active { background: var(--brand-soft); border-left-color: var(--brand); }
+  .case-row .r1 { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .case-row .id { font-family: var(--mono); font-size: 11.5px; color: var(--ink-soft); font-weight: 600; }
+  .case-row .ago { font-size: 10.5px; color: var(--ink-faint); font-family: var(--mono); white-space: nowrap; }
+  .case-row .who { font-weight: 600; font-size: 13.5px; margin-top: 2px; }
+  .case-row .r3 { display: flex; align-items: center; gap: 7px; margin-top: 5px; }
+  .case-row .docs-n { font-size: 10.5px; color: var(--ink-faint); }
+
+  .chip { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 2px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .chip.PENDING_REVIEW { background: var(--pending-bg); color: var(--pending); }
+  .chip.APPROVED { background: var(--ok-bg); color: var(--ok); }
+  .chip.REJECTED { background: var(--bad-bg); color: var(--bad); }
+
+  .record-head { padding: 16px 20px; border-bottom: 1px solid var(--line); display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .record-head h3 { margin: 0; font-size: 19px; letter-spacing: -0.01em; }
+  .record-head .meta { font-family: var(--mono); font-size: 11.5px; color: var(--ink-faint); margin-top: 3px; }
+  .section { padding: 16px 20px; border-bottom: 1px solid var(--line-soft); }
+  .section > h4 { margin: 0 0 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-soft); font-family: var(--mono); display: flex; align-items: center; gap: 7px; }
+  .section > h4::after { content: ""; flex: 1; height: 1px; background: var(--line-soft); }
+  .rec-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px 22px; }
+  .rec-field .k { font-size: 10.5px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.05em; }
+  .rec-field .v { font-size: 13.5px; margin-top: 1px; word-break: break-word; }
+  .rec-field .v.mono { font-family: var(--mono); font-size: 12.5px; }
+  .rec-field .v.empty { color: var(--ink-faint); }
+
+  .doc-list { display: flex; flex-direction: column; gap: 8px; }
+  .doc-item { display: flex; align-items: center; gap: 11px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 3px; background: #f9fafc; }
+  .doc-item .ic { flex: none; width: 32px; height: 32px; border-radius: 3px; background: var(--brand-soft); color: var(--brand); display: flex; align-items: center; justify-content: center; }
+  .doc-item .txt { min-width: 0; flex: 1; }
+  .doc-item .t { font-size: 13px; font-weight: 600; }
+  .doc-item .s { font-size: 10.5px; color: var(--ink-faint); margin-top: 1px; }
+  .doc-empty { font-size: 12.5px; color: var(--ink-faint); font-style: italic; }
+
+  .decision-box { padding: 16px 20px; background: #f9fafc; }
+  .decision-actions { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+  .verdict { padding: 14px 20px; }
+  .verdict .vbody { margin-top: 8px; font-size: 13px; background: #f9fafc; border-left: 3px solid var(--line); padding: 10px 13px; border-radius: 0 3px 3px 0; }
+  .verdict .vwho { font-size: 11px; color: var(--ink-faint); font-family: var(--mono); margin-top: 7px; }
+
+  .empty-state { padding: 60px 24px; text-align: center; color: var(--ink-faint); }
+  .empty-state .big { font-size: 14px; margin-bottom: 4px; color: var(--ink-soft); }
+  .empty-state .small { font-size: 12.5px; }
+
+  footer.portal-foot { border-top: 1px solid var(--line); background: var(--panel); padding: 14px 24px; font-size: 11.5px; color: var(--ink-faint); text-align: center; }
+
+  .modal-mask { position: fixed; inset: 0; background: rgba(12,20,35,0.55); display: flex; align-items: center; justify-content: center; padding: 24px; z-index: 200; }
+  .modal-mask[hidden] { display: none; }
+  .viewer { background: var(--panel); border-radius: 5px; width: min(1000px, 100%); height: min(88vh, 100%); display: flex; flex-direction: column; overflow: hidden; }
+  .viewer-cap { padding: 12px 16px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+  .viewer-cap .vt { font-size: 14px; font-weight: 600; }
+  .viewer-cap .vs { font-size: 11px; color: var(--ink-faint); font-family: var(--mono); margin-top: 1px; }
+  .viewer-cap .acts { display: flex; align-items: center; gap: 8px; }
+  .viewer-body { flex: 1; min-height: 0; overflow: auto; background: #47505f; display: flex; align-items: center; justify-content: center; }
+  .viewer-body iframe { width: 100%; height: 100%; border: 0; background: #fff; }
+  .viewer-body img { max-width: 100%; max-height: 100%; display: block; }
+  .viewer-body .docx-render { background: #fff; width: 100%; min-height: 100%; padding: 40px 48px; align-self: flex-start; }
+  .viewer-body .docx-render p { margin: 0 0 10px; }
+  .viewer-body .docx-render table { border-collapse: collapse; margin: 0 0 12px; }
+  .viewer-body .docx-render td, .viewer-body .docx-render th { border: 1px solid var(--line); padding: 5px 8px; }
+  .viewer-msg { color: #dee3ea; text-align: center; padding: 40px; max-width: 420px; }
+  .viewer-msg .m1 { font-size: 14px; margin-bottom: 6px; }
+  .viewer-msg .m2 { font-size: 12.5px; opacity: 0.75; }
+
+  .toast-stack { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 8px; z-index: 300; }
+  .toast { background: var(--brand-dark); color: #e7edf7; padding: 10px 14px; border-radius: 3px; font-size: 12.5px; box-shadow: 0 4px 16px rgba(0,0,0,0.2); max-width: 300px; animation: tin 0.2s ease; }
+  @keyframes tin { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
+</style>
+</head>
+<body>
+  <div class="gov-strip">
+    <span class="left">Government of Tamil Nadu &middot; Office of the Registrar of Business Entities</span>
+    <span class="right">Business Registry System (BRS) &middot; Legacy SOAP Interface</span>
+  </div>
+  <div class="tricolour"></div>
+
+  <header class="masthead">
+    <div class="brand">
+      <div class="seal">BR</div>
+      <div>
+        <h1>Business Registry</h1>
+        <div class="sub">Business Entity Verification &middot; <b>SOAP/XML</b> &middot; <b>MySQL</b></div>
+      </div>
+    </div>
+    <div class="masthead-right">
+      <span class="live-pill off" id="livePill"><span class="dot"></span><span id="liveLabel">Offline</span></span>
+      <div class="officer-box" id="officerBox" hidden>
+        <div class="who" id="officerName"></div>
+        <div class="role">Verifying Officer</div>
+      </div>
+      <button class="btn-ghost" id="logoutBtn" hidden>Sign out</button>
+    </div>
+  </header>
+
+  <div class="crumbs" id="crumbs" hidden>Home &rsaquo; Verification Cases &rsaquo; <b id="crumbLeaf">All cases</b></div>
+
+  <main>
+    <div class="login-wrap" id="loginView">
+      <div class="login-card">
+        <div class="cap">Officer Sign-in</div>
+        <div class="body">
+          <p class="note">This is an independently operated departmental system. Credentials are issued by the Registrar's office and are not shared with OneDesk.</p>
+          <div class="field"><label for="loginUser">Officer ID</label><input id="loginUser" value="admin1" autocomplete="username" /></div>
+          <div class="field"><label for="loginPass">Password</label><input id="loginPass" type="password" value="admin123" autocomplete="current-password" /></div>
+          <button class="btn" id="loginBtn" style="width:100%">Sign in</button>
+          <div class="error" id="loginError"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="appView" hidden>
+      <div class="stats">
+        <div class="stat total"><div class="n" id="statTotal">0</div><div class="l">Total Cases</div></div>
+        <div class="stat pending"><div class="n" id="statPending">0</div><div class="l">Awaiting Review</div></div>
+        <div class="stat approved"><div class="n" id="statApproved">0</div><div class="l">Verified</div></div>
+        <div class="stat rejected"><div class="n" id="statRejected">0</div><div class="l">Rejected</div></div>
+      </div>
+
+      <div class="layout">
+        <div class="panel">
+          <div class="panel-cap">
+            <h2>Case Queue</h2>
+            <span class="count" id="queueCount"></span>
+          </div>
+          <div class="queue-controls">
+            <div class="search-row">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <input id="searchInput" placeholder="Search by application ID or applicant" />
+            </div>
+            <div class="tabs" id="tabs"></div>
+          </div>
+          <div class="case-list" id="caseList"></div>
+        </div>
+
+        <div class="panel" id="recordPanel">
+          <div class="empty-state">
+            <div class="big">No case selected</div>
+            <div class="small">Choose a case from the queue to review the applicant record.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="portal-foot">
+    Business Registry Verification System &middot; operated independently of the OneDesk unified portal &middot;
+    case data and decisions are held in this department's own records.
+  </footer>
+
+  <div class="modal-mask" id="viewerMask" hidden>
+    <div class="viewer" role="dialog" aria-modal="true" aria-labelledby="viewerTitle">
+      <div class="viewer-cap">
+        <div>
+          <div class="vt" id="viewerTitle">Document</div>
+          <div class="vs" id="viewerSub"></div>
+        </div>
+        <div class="acts">
+          <a class="btn sm outline" id="viewerDownload" download>Download</a>
+          <button class="btn-ghost" id="viewerClose">Close</button>
+        </div>
+      </div>
+      <div class="viewer-body" id="viewerBody"></div>
+    </div>
+  </div>
+
+  <div class="toast-stack" id="toastStack"></div>
+
+<script src="/vendor/mammoth.browser.min.js"></script>
+<script>
+  const API_BASE = `${location.protocol}//${location.hostname}:4301`;
+  const TOKEN_KEY = 'business_registry_portal_token';
+  const USER_KEY = 'business_registry_portal_user';
+  const DEPT_LABEL = 'Business Registry';
+
+  let token = localStorage.getItem(TOKEN_KEY);
+  let username = localStorage.getItem(USER_KEY);
+  let cases = [];
+  let selectedId = null;
+  let statusFilter = 'ALL';
+  let query = '';
+  let eventSource = null;
+  let lastObjectUrl = null;
+
+  const el = (id) => document.getElementById(id);
+  const loginView = el('loginView');
+  const appView = el('appView');
+  const livePill = el('livePill');
+
+  const DOC_META = {
+    'Identity Proof': 'Aadhaar Card / Voter ID / Passport',
+    'Address Proof': 'Utility Bill / Ration Card / Aadhaar',
+    'Business Registration Draft': 'Udyam Registration / GST / Shop & Establishment',
+    'Income Declaration': 'Form 16 / ITR Acknowledgement / Salary Slip',
+    'Trade & Establishment Clearance Certificate': 'Issued clearance certificate',
+  };
+
+  const TABS = [
+    { key: 'ALL', label: 'All' },
+    { key: 'PENDING_REVIEW', label: 'Awaiting' },
+    { key: 'APPROVED', label: 'Verified' },
+    { key: 'REJECTED', label: 'Rejected' },
+  ];
+  el('tabs').innerHTML = TABS.map((t) => `<button type="button" class="tab" data-key="${t.key}">${t.label}</button>`).join('');
+  el('tabs').querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => { statusFilter = b.dataset.key; render(); }));
+  el('searchInput').addEventListener('input', (e) => { query = e.target.value.trim().toLowerCase(); render(); });
+
+  function showApp() {
+    loginView.hidden = true; appView.hidden = false;
+    el('crumbs').hidden = false; el('officerBox').hidden = false; el('logoutBtn').hidden = false;
+    el('officerName').textContent = username || '';
+    loadCases(); connectEvents();
+  }
+  function showLogin() {
+    loginView.hidden = false; appView.hidden = true;
+    el('crumbs').hidden = true; el('officerBox').hidden = true; el('logoutBtn').hidden = true;
+    if (eventSource) { eventSource.close(); eventSource = null; }
+    setLive(false);
+  }
+  function setLive(on) {
+    livePill.classList.toggle('off', !on);
+    el('liveLabel').textContent = on ? 'Live' : 'Offline';
+  }
+
+  el('loginBtn').addEventListener('click', async () => {
+    const errEl = el('loginError'); errEl.textContent = '';
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: el('loginUser').value.trim(), password: el('loginPass').value }),
+      });
+      const body = await res.json();
+      if (!res.ok) { errEl.textContent = body.error || 'Sign-in failed.'; return; }
+      token = body.token; username = body.username;
+      localStorage.setItem(TOKEN_KEY, token); localStorage.setItem(USER_KEY, username);
+      showApp();
+    } catch { errEl.textContent = 'Could not reach the departmental server.'; }
+  });
+  el('loginPass').addEventListener('keydown', (e) => { if (e.key === 'Enter') el('loginBtn').click(); });
+  el('logoutBtn').addEventListener('click', () => {
+    localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(USER_KEY);
+    token = null; showLogin();
+  });
+
+  async function authedFetch(path, options = {}) {
+    const res = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers: { ...(options.headers || {}), Authorization: `Bearer ${token}` },
+    });
+    if (res.status === 401) { showLogin(); throw new Error('session expired'); }
+    return res;
+  }
+
+  async function loadCases() {
+    const res = await authedFetch('/api/cases');
+    cases = await res.json();
+    render();
+  }
+
+  function connectEvents() {
+    if (eventSource) eventSource.close();
+    eventSource = new EventSource(`${API_BASE}/api/events?token=${encodeURIComponent(token)}`);
+    eventSource.onopen = () => setLive(true);
+    eventSource.onerror = () => setLive(false);
+    eventSource.onmessage = (evt) => {
+      const row = JSON.parse(evt.data);
+      const i = cases.findIndex((c) => c.application_id === row.application_id);
+      const isNew = i === -1;
+      if (isNew) cases.unshift(row); else cases[i] = row;
+      if (isNew && row.status === 'PENDING_REVIEW') toast(`New case received — ${row.application_id}`);
+      render();
+    };
+  }
+
+  function toast(message) {
+    const n = document.createElement('div');
+    n.className = 'toast'; n.textContent = message;
+    el('toastStack').appendChild(n);
+    setTimeout(() => n.remove(), 4800);
+  }
+
+  function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+  function timeAgo(iso) {
+    const s = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+    if (s < 60) return `${s}s ago`;
+    const m = Math.floor(s / 60); if (m < 60) return `${m}m ago`;
+    const h = Math.floor(m / 60); if (h < 24) return `${h}h ago`;
+    return `${Math.floor(h / 24)}d ago`;
+  }
+  function fmtDate(v) {
+    if (!v) return null;
+    const d = new Date(v);
+    return isNaN(d) ? String(v) : d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+  function fmtDateTime(v) {
+    if (!v) return null;
+    const d = new Date(v);
+    return isNaN(d) ? String(v) : d.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+  // MySQL's JSON column comes back as a string through mysql2 — normalize here.
+  function docsOf(c) {
+    const d = c.documents;
+    return (typeof d === 'string' ? JSON.parse(d) : (d ?? []));
+  }
+  function field(k, v, mono) {
+    const has = v !== null && v !== undefined && v !== '';
+    return `<div class="rec-field"><div class="k">${esc(k)}</div><div class="v ${mono ? 'mono' : ''} ${has ? '' : 'empty'}">${has ? esc(v) : '—'}</div></div>`;
+  }
+
+  function render() { renderStats(); renderQueue(); renderRecord(); }
+
+  function renderStats() {
+    el('statTotal').textContent = cases.length;
+    el('statPending').textContent = cases.filter((c) => c.status === 'PENDING_REVIEW').length;
+    el('statApproved').textContent = cases.filter((c) => c.status === 'APPROVED').length;
+    el('statRejected').textContent = cases.filter((c) => c.status === 'REJECTED').length;
+  }
+
+  function visibleCases() {
+    return cases
+      .filter((c) => statusFilter === 'ALL' || c.status === statusFilter)
+      .filter((c) => !query || c.application_id.toLowerCase().includes(query) || String(c.citizen_name).toLowerCase().includes(query));
+  }
+
+  function renderQueue() {
+    el('tabs').querySelectorAll('.tab').forEach((b) => b.classList.toggle('active', b.dataset.key === statusFilter));
+    const list = visibleCases();
+    el('queueCount').textContent = `${list.length} of ${cases.length}`;
+    const host = el('caseList');
+    if (list.length === 0) {
+      host.innerHTML = `<div class="empty-state"><div class="small">${cases.length === 0 ? 'No cases have been received yet.' : 'No cases match this filter.'}</div></div>`;
+      return;
+    }
+    host.innerHTML = list.map((c) => {
+      const n = docsOf(c).length;
+      return `
+        <div class="case-row ${c.application_id === selectedId ? 'active' : ''}" data-id="${esc(c.application_id)}" role="button" tabindex="0">
+          <div class="r1"><span class="id">${esc(c.application_id)}</span><span class="ago">${timeAgo(c.received_at)}</span></div>
+          <div class="who">${esc(c.citizen_name)}</div>
+          <div class="r3">
+            <span class="chip ${c.status}">${c.status.replace('_', ' ')}</span>
+            <span class="docs-n">${n} document${n === 1 ? '' : 's'}</span>
+          </div>
+        </div>`;
+    }).join('');
+    host.querySelectorAll('.case-row').forEach((row) => {
+      const pick = () => { selectedId = row.dataset.id; render(); };
+      row.addEventListener('click', pick);
+      row.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+    });
+  }
+
+  function renderRecord() {
+    const host = el('recordPanel');
+    const c = cases.find((x) => x.application_id === selectedId);
+    el('crumbLeaf').textContent = c ? c.application_id : (statusFilter === 'ALL' ? 'All cases' : TABS.find((t) => t.key === statusFilter).label);
+
+    if (!c) {
+      host.innerHTML = `<div class="empty-state"><div class="big">No case selected</div><div class="small">Choose a case from the queue to review the applicant record.</div></div>`;
+      return;
+    }
+
+    const docs = docsOf(c);
+    const docsHtml = docs.length === 0
+      ? `<p class="doc-empty">The applicant submitted no supporting documents with this application.</p>`
+      : docs.map((d) => `
+          <div class="doc-item">
+            <span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></span>
+            <span class="txt">
+              <span class="t">${esc(d.type)}</span>
+              <span class="s">${esc(DOC_META[d.type] || 'Citizen-provided document')}${d.mimeType ? ' &middot; ' + esc(d.mimeType) : ''}</span>
+            </span>
+            <button class="btn sm outline" data-doc="${esc(d.docId)}" data-type="${esc(d.type)}" data-mime="${esc(d.mimeType || '')}">View</button>
+          </div>`).join('');
+
+    const decisionHtml = c.status === 'PENDING_REVIEW'
+      ? `<div class="decision-box">
+           <h4 style="margin:0 0 10px;font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-soft);font-family:var(--mono)">Officer Decision</h4>
+           <div class="field">
+             <label for="remarkInput">Remarks (recorded against this case and shown to the applicant)</label>
+             <textarea id="remarkInput" placeholder="State the grounds for verification or rejection."></textarea>
+           </div>
+           <div class="decision-actions">
+             <button class="btn" id="approveBtn">Approve verification</button>
+             <button class="btn reject" id="rejectBtn">Reject application</button>
+           </div>
+         </div>`
+      : `<div class="verdict">
+           <div class="vhead"><span class="chip ${c.status}">${c.status}</span></div>
+           <div class="vbody">${esc(c.remark || 'No remarks were recorded.')}</div>
+           <div class="vwho">Decided by ${esc(c.decided_by || '—')} on ${esc(fmtDateTime(c.decided_at) || '—')}</div>
+         </div>`;
+
+    host.innerHTML = `
+      <div class="record-head">
+        <div>
+          <h3>${esc(c.citizen_name)}</h3>
+          <div class="meta">${esc(c.application_id)} &middot; ${esc(c.application_type)}</div>
+        </div>
+        <span class="chip ${c.status}">${c.status.replace('_', ' ')}</span>
+      </div>
+
+      <div class="section">
+        <h4>Applicant Details</h4>
+        <div class="rec-grid">
+          ${field('Full Name', c.citizen_name)}
+          ${field('OneDesk Master ID', c.citizen_master_id, true)}
+          ${field('Date of Birth', fmtDate(c.date_of_birth))}
+          ${field('Mobile Number', c.phone_number, true)}
+          ${field('Employment Status', c.employment_status)}
+          ${field('Address', c.address)}
+        </div>
+      </div>
+
+      <div class="section">
+        <h4>Application Details</h4>
+        <div class="rec-grid">
+          ${field('Application ID', c.application_id, true)}
+          ${field('Service Applied For', c.application_type)}
+          ${field('Submitted to OneDesk', fmtDate(c.submitted_on))}
+          ${field('Received by this Department', fmtDateTime(c.received_at))}
+        </div>
+      </div>
+
+      <div class="section">
+        <h4>Consent &amp; Data Sharing</h4>
+        <div class="rec-grid">
+          ${field('Data Shared Under Consent', c.consented_data_category)}
+          ${field('Consent Basis', 'Citizen-granted, verified by OneDesk before release')}
+        </div>
+      </div>
+
+      <div class="section">
+        <h4>Supporting Documents (${docs.length})</h4>
+        <div class="doc-list">${docsHtml}</div>
+      </div>
+
+      ${decisionHtml}`;
+
+    host.querySelectorAll('[data-doc]').forEach((b) => {
+      b.addEventListener('click', () => openDocument(c.application_id, b.dataset.doc, b.dataset.type, b.dataset.mime));
+    });
+    if (c.status === 'PENDING_REVIEW') {
+      el('approveBtn').addEventListener('click', () => decide(c.application_id, 'APPROVED'));
+      el('rejectBtn').addEventListener('click', () => decide(c.application_id, 'REJECTED'));
+    }
+  }
+
+  async function decide(id, decision) {
+    const remark = el('remarkInput').value.trim();
+    if (!remark) { toast('Please record your remarks before deciding.'); el('remarkInput').focus(); return; }
+    el('approveBtn').disabled = true; el('rejectBtn').disabled = true;
+    try {
+      const res = await authedFetch(`/api/cases/${encodeURIComponent(id)}/decision`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ decision, remark }),
+      });
+      if (!res.ok) { toast('Could not record the decision.'); el('approveBtn').disabled = false; el('rejectBtn').disabled = false; return; }
+      toast(decision === 'APPROVED' ? 'Verification approved and reported to OneDesk.' : 'Application rejected and reported to OneDesk.');
+      if (!eventSource) loadCases();
+    } catch {
+      el('approveBtn').disabled = false; el('rejectBtn').disabled = false;
+    }
+  }
+
+  function closeViewer() {
+    el('viewerMask').hidden = true;
+    el('viewerBody').innerHTML = '';
+    if (lastObjectUrl) { URL.revokeObjectURL(lastObjectUrl); lastObjectUrl = null; }
+  }
+  el('viewerClose').addEventListener('click', closeViewer);
+  el('viewerMask').addEventListener('click', (e) => { if (e.target === el('viewerMask')) closeViewer(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !el('viewerMask').hidden) closeViewer(); });
+
+  async function openDocument(applicationId, docId, type, mime) {
+    const body = el('viewerBody');
+    el('viewerTitle').textContent = type || 'Document';
+    el('viewerSub').textContent = `${DEPT_LABEL} · ${applicationId}`;
+    el('viewerMask').hidden = false;
+    body.innerHTML = `<div class="viewer-msg"><div class="m1">Retrieving document…</div><div class="m2">Fetching from OneDesk with this department's signed access link.</div></div>`;
+
+    try {
+      const res = await authedFetch(`/api/cases/${encodeURIComponent(applicationId)}/documents/${encodeURIComponent(docId)}/file`);
+      if (!res.ok) {
+        body.innerHTML = `<div class="viewer-msg"><div class="m1">Document unavailable</div><div class="m2">OneDesk did not return this file. The access link may have expired, or the applicant did not attach a file for this requirement.</div></div>`;
+        return;
+      }
+      const blob = await res.blob();
+      const contentType = (mime || blob.type || '').toLowerCase();
+      if (lastObjectUrl) URL.revokeObjectURL(lastObjectUrl);
+      lastObjectUrl = URL.createObjectURL(blob);
+
+      const dl = el('viewerDownload');
+      dl.href = lastObjectUrl;
+      dl.setAttribute('download', type || 'document');
+
+      if (contentType.includes('pdf')) {
+        body.innerHTML = `<iframe src="${lastObjectUrl}" title="${esc(type)}"></iframe>`;
+      } else if (contentType.startsWith('image/')) {
+        body.innerHTML = `<img src="${lastObjectUrl}" alt="${esc(type)}" />`;
+      } else if (contentType.includes('officedocument.wordprocessingml') || contentType.includes('msword')) {
+        if (typeof mammoth === 'undefined') {
+          body.innerHTML = `<div class="viewer-msg"><div class="m1">Preview unavailable</div><div class="m2">The document renderer did not load. Use Download to open this file locally.</div></div>`;
+          return;
+        }
+        const result = await mammoth.convertToHtml({ arrayBuffer: await blob.arrayBuffer() });
+        body.innerHTML = `<div class="docx-render">${result.value || '<p><em>This document contains no renderable text.</em></p>'}</div>`;
+      } else {
+        body.innerHTML = `<div class="viewer-msg"><div class="m1">Preview not supported</div><div class="m2">${esc(contentType || 'Unknown file type')} cannot be displayed in the browser. Use Download to open it locally.</div></div>`;
+      }
+    } catch {
+      body.innerHTML = `<div class="viewer-msg"><div class="m1">Could not retrieve the document</div><div class="m2">The departmental server could not reach OneDesk. Try again shortly.</div></div>`;
+    }
+  }
+
+  setInterval(() => { if (!appView.hidden) renderQueue(); }, 30000);
+
+  if (token) showApp(); else showLogin();
+</script>
+</body>
+</html>

@@ -15,7 +15,6 @@ import Departments from '@/pages/Departments'
 import Documents from '@/pages/Documents'
 import GovernmentPlatform from '@/pages/GovernmentPlatform'
 import Grievances from '@/pages/Grievances'
-import GovtRegistry from '@/pages/GovtRegistry'
 import Help from '@/pages/Help'
 import Home from '@/pages/Home'
 import Login from '@/pages/Login'
@@ -25,7 +24,6 @@ import Register from '@/pages/Register'
 import ServiceDetails from '@/pages/ServiceDetails'
 import Services from '@/pages/Services'
 import Settings from '@/pages/Settings'
-import SystemArchitecture from '@/pages/SystemArchitecture'
 
 function RequireAuth() {
   const { isAuthenticated } = useAuth()
@@ -39,24 +37,6 @@ function DashboardRoute() {
   const { isAdminOnly } = useRole()
   if (isAdminOnly) return <Navigate to="/platform" replace />
   return <Dashboard />
-}
-
-// The govt registry holds full mock-citizen PII and is platform-admin-only on the
-// backend (RolesGuard @Roles('platform-admin')) — officers get redirected rather
-// than hitting a 403 from every fetch.
-function GovtRegistryRoute() {
-  const { isAdminOnly } = useRole()
-  if (!isAdminOnly) return <Navigate to="/platform" replace />
-  return <GovtRegistry />
-}
-
-// Same restriction the tabs had inline (role === 'Platform Administrator') before
-// being promoted out of Government Platform's tab list — officers redirected rather
-// than landing on an admin-only diagram.
-function SystemArchitectureRoute() {
-  const { isAdminOnly } = useRole()
-  if (!isAdminOnly) return <Navigate to="/platform" replace />
-  return <SystemArchitecture />
 }
 
 export default function App() {
@@ -128,22 +108,6 @@ export default function App() {
           element={
             <RequirePlatformAccess>
               <GovernmentPlatform />
-            </RequirePlatformAccess>
-          }
-        />
-        <Route
-          path="govt-registry"
-          element={
-            <RequirePlatformAccess>
-              <GovtRegistryRoute />
-            </RequirePlatformAccess>
-          }
-        />
-        <Route
-          path="architecture"
-          element={
-            <RequirePlatformAccess>
-              <SystemArchitectureRoute />
             </RequirePlatformAccess>
           }
         />

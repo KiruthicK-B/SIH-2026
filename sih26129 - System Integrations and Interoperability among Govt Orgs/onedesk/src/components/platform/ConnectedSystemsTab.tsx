@@ -78,12 +78,12 @@ export function ConnectedSystemsTab() {
 // and watch the affected step block while everything else keeps moving; restore to resume.
 function ConnectorKillSwitchPanel() {
   const { t } = useTranslation()
-  const { role } = useRole()
+  const { isAdminOnly } = useRole()
   const { showToast } = useToast()
   const [connectors, setConnectors] = useState<ConnectorRegistryRow[]>([])
   const [busy, setBusy] = useState<string | null>(null)
 
-  const isAdmin = role === 'Platform Administrator'
+  const isAdmin = isAdminOnly
 
   const load = () => {
     api.get<ConnectorRegistryRow[]>('/admin/connectors').then(setConnectors)

@@ -242,11 +242,20 @@
     "processNextStep": "Process Next Step",
     "approvalFailedTitle": "Approval failed",
     "approvalFailedDescription": "This application is not assigned to your department or the connector is unavailable.",
-    "unassigned": "unassigned"
+    "unassigned": "unassigned",
+    "consentRequiredTitle": "Consent Required",
+    "consentRequiredHint": "{{department}} needs your consent to access {{data}} before this application can continue.",
+    "consentRequiredWaiting": "{{department}} needs your consent to continue. Loading the request — try refreshing in a moment if this doesn't update.",
+    "grantConsentResume": "Grant Consent & Resume",
+    "certificateIssuedTitle": "Certificate Issued",
+    "certificateIssuedHint": "Issued on {{date}} once every department signed off.",
+    "viewInDocuments": "View in My Documents"
   },
   "timeline": {
     "inProgress": "In progress",
-    "defaultBlockedNote": "System temporarily unavailable — retry scheduled."
+    "defaultBlockedNote": "System temporarily unavailable — retry scheduled.",
+    "awaitingDepartment": "Submitted — awaiting the department's review.",
+    "rejectedNote": "This step was not approved."
   },
   "wizard": {
     "stepPersonalInfo": "Personal Information",
@@ -441,14 +450,19 @@
     "title": "Government Platform",
     "subtitle": "Signed in as {{role}} — the interoperability layer monitoring every connected department system.",
     "tabOverview": "Overview",
-    "tabStandards": "Data Standards",
-    "tabQuality": "Data Quality",
-    "tabSystems": "Connected Systems",
+    "tabInteroperability": "Interoperability",
+    "tabDataConsent": "Data & Consent",
+    "tabOperations": "Operations",
+    "tabRegistry": "Registry",
     "tabWorkflows": "Workflows",
-    "tabConsent": "Consent & Access",
     "tabExceptions": "Exceptions",
     "tabSla": "SLA Monitoring",
-    "tabModernization": "Modernization"
+    "tabModernizationHeading": "Department Modernization",
+    "subTopology": "Topology",
+    "subDataMapping": "Data Mapping",
+    "subConnectorRegistry": "Connector Registry",
+    "subStandardsQuality": "Standards & Quality",
+    "subConsentLedger": "Consent Ledger"
   },
   "overviewTab": {
     "loaderTitle": "Connecting to the interoperability layer",

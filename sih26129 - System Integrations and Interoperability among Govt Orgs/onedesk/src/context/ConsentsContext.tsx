@@ -9,6 +9,7 @@ interface ConsentsContextValue {
   allowRequest: (requestId: string) => Promise<void>
   denyRequest: (requestId: string) => Promise<void>
   revokeConsent: (consentId: string) => Promise<void>
+  refresh: () => Promise<void>
 }
 
 const ConsentsContext = createContext<ConsentsContextValue | null>(null)
@@ -46,7 +47,7 @@ export function ConsentsProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <ConsentsContext.Provider value={{ consents, pendingRequests, allowRequest, denyRequest, revokeConsent }}>
+    <ConsentsContext.Provider value={{ consents, pendingRequests, allowRequest, denyRequest, revokeConsent, refresh }}>
       {children}
     </ConsentsContext.Provider>
   )

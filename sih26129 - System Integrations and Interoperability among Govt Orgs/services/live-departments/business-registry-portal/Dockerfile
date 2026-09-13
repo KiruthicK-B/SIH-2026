@@ -1,0 +1,12 @@
+FROM node:22-slim
+
+WORKDIR /app
+
+COPY package.json ./
+RUN npm install
+
+COPY . .
+
+EXPOSE 4301 5301
+
+CMD ["node", "server.js"]

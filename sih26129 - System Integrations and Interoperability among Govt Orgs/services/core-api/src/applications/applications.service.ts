@@ -23,6 +23,18 @@ const BUSINESS_LICENSE_TIMELINE = (today: string): TimelineStep[] => [
   { label: 'Final Approval', department: 'License Authority', status: 'pending', systemType: 'GraphQL API' },
 ];
 
+// Three genuinely separate, independently-run department portals — own backend,
+// protocol, and database each (see LIVE_DEPARTMENT_PORTALS_PLAN.md). Distinct
+// department names from the Business License flow's stub adapters above on
+// purpose: this flow never touches that one's already-shipped consent-gating.
+const TRADE_CLEARANCE_TIMELINE = (today: string): TimelineStep[] => [
+  { label: 'Application Submitted', department: 'OneDesk', status: 'done', date: today, systemType: 'Unified Portal' },
+  { label: 'Identity Verified', department: 'Identity Service', status: 'active', systemType: 'OAuth / Federation' },
+  { label: 'Business Registry Review', department: 'Business Registry Portal', status: 'pending', systemType: 'SOAP · MySQL' },
+  { label: 'License Authority Review', department: 'License Authority Portal', status: 'pending', systemType: 'GraphQL · MongoDB' },
+  { label: 'Revenue Clearance', department: 'Revenue Department Portal', status: 'pending', systemType: 'REST · PostgreSQL' },
+];
+
 const GENERIC_TIMELINE = (today: string, department: string): TimelineStep[] => [
   { label: 'Application Submitted', department: 'Unified Portal', status: 'done', date: today },
   { label: 'Documents Verified', department, status: 'active' },
@@ -123,17 +135,22 @@ export class ApplicationsService {
 
     const today = todayISO();
     const isBusinessLicense = input.service === 'Business License';
+    const isTradeClearance = input.service === 'Trade & Establishment Clearance';
     const { rows: seqRows } = await this.pool.query("SELECT nextval('application_seq') AS n");
     const seq = seqRows[0].n;
-    const id = isBusinessLicense ? `BL-2026-${seq}` : `APP-2026-${seq}`;
-    const timeline = isBusinessLicense ? BUSINESS_LICENSE_TIMELINE(today) : GENERIC_TIMELINE(today, input.department);
+    const id = isBusinessLicense ? `BL-2026-${seq}` : isTradeClearance ? `TRD-2026-${seq}` : `APP-2026-${seq}`;
+    const timeline = isBusinessLicense
+      ? BUSINESS_LICENSE_TIMELINE(today)
+      : isTradeClearance
+        ? TRADE_CLEARANCE_TIMELINE(today)
+        : GENERIC_TIMELINE(today, input.department);
 
     await this.pool.query('BEGIN');
     try {
       await this.pool.query(
         `INSERT INTO applications (id, service, department, status, last_updated, submitted_on, citizen_name, citizen_master_id, description, flagship)
          VALUES ($1, $2, $3, 'In Progress', $4, $4, $5, $6, $7, $8)`,
-        [id, input.service, input.department, today, input.citizenName, input.citizenMasterId ?? null, input.description, isBusinessLicense],
+        [id, input.service, input.department, today, input.citizenName, input.citizenMasterId ?? null, input.description, isBusinessLicense || isTradeClearance],
       );
       for (const [i, step] of timeline.entries()) {
         await this.pool.query(

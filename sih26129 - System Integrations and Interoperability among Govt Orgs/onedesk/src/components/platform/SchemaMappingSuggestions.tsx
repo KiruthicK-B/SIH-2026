@@ -33,7 +33,7 @@ type SuggestionStatus = 'pending' | 'approved' | 'rejected'
 // suggests them instead, with a confidence score and an editable approval step.
 export function SchemaMappingSuggestions() {
   const { t } = useTranslation()
-  const { role } = useRole()
+  const { isAdminOnly } = useRole()
   const { showToast } = useToast()
   const { identity } = useIdentity()
   const [sourceSystem, setSourceSystem] = useState(DEFAULT_SOURCE_SYSTEM)
@@ -57,8 +57,7 @@ export function SchemaMappingSuggestions() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [identity])
 
-  const isAdmin = role === 'Platform Administrator'
-  if (!isAdmin) return null
+  if (!isAdminOnly) return null
 
   const updateField = (idx: number, key: keyof SampleField, value: string) => {
     setFields((prev) => prev.map((f, i) => (i === idx ? { ...f, [key]: value } : f)))

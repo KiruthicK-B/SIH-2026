@@ -54,6 +54,20 @@ export class DocumentsService {
     return { filePath: rows[0].file_path, mimeType: rows[0].mime_type, name: rows[0].name };
   }
 
+  /**
+   * File lookup for an external department portal fetching a document it was
+   * handed with a case (see InteropController's signed document route). Bound to
+   * the application rather than the citizen: the signature already proves which
+   * application the caller was given, and this query makes sure the docId it
+   * presents actually belongs to that application — so a department can't swap in
+   * an arbitrary docId and read an unrelated citizen's file.
+   */
+  async getFileForApplication(docId: string, applicationId: string) {
+    const { rows } = await this.pool.query('SELECT * FROM documents WHERE id = $1 AND application_id = $2', [docId, applicationId]);
+    if (rows.length === 0 || !rows[0].file_path) return null;
+    return { filePath: rows[0].file_path, mimeType: rows[0].mime_type, name: rows[0].name };
+  }
+
   /** Ownership-checked — only links documents the same citizen uploaded. */
   async linkToApplication(documentIds: string[], applicationId: string, citizenMasterId: string) {
     if (documentIds.length === 0) return;

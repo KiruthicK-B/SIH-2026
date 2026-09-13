@@ -1,4 +1,4 @@
-import { AlertTriangle, Check } from 'lucide-react'
+import { AlertTriangle, Check, Clock, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { TimelineStep } from '@/data/applications'
 import { cn, formatDate } from '@/lib/utils'
@@ -24,7 +24,9 @@ export function ApplicationTimeline({ steps }: { steps: TimelineStep[] }) {
                 'z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 text-xs font-semibold',
                 step.status === 'done' && 'border-success-600 bg-success-600 text-white',
                 step.status === 'active' && 'border-brand-500 bg-brand-50 text-brand-600',
+                step.status === 'awaiting_department' && 'border-consent-600 bg-consent-50 text-consent-600',
                 step.status === 'blocked' && 'border-warning-600 bg-warning-50 text-warning-600',
+                step.status === 'rejected' && 'border-danger-600 bg-danger-50 text-danger-600',
                 step.status === 'pending' && 'border-gray-300 bg-white text-gray-300',
               )}
             >
@@ -32,6 +34,10 @@ export function ApplicationTimeline({ steps }: { steps: TimelineStep[] }) {
                 <Check className="h-4 w-4" />
               ) : step.status === 'blocked' ? (
                 <AlertTriangle className="h-4 w-4" />
+              ) : step.status === 'rejected' ? (
+                <X className="h-4 w-4" />
+              ) : step.status === 'awaiting_department' ? (
+                <Clock className="h-4 w-4" />
               ) : step.status === 'active' ? (
                 <span className="h-2.5 w-2.5 rounded-full bg-brand-500" />
               ) : (
@@ -62,6 +68,16 @@ export function ApplicationTimeline({ steps }: { steps: TimelineStep[] }) {
               {step.status === 'blocked' && (
                 <p className="mt-1 text-xs font-medium text-warning-700">
                   {step.note ?? t('timeline.defaultBlockedNote')}
+                </p>
+              )}
+              {step.status === 'awaiting_department' && (
+                <p className="mt-1 text-xs font-medium text-consent-700">
+                  {step.note ?? t('timeline.awaitingDepartment')}
+                </p>
+              )}
+              {step.status === 'rejected' && (
+                <p className="mt-1 text-xs font-medium text-danger-700">
+                  {step.note ?? t('timeline.rejectedNote')}
                 </p>
               )}
             </div>

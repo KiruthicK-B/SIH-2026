@@ -1,8 +1,10 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import type { Pool, QueryResultRow } from 'pg';
+import { ConnectorsService } from '../connectors/connectors.service';
 import { PG_POOL } from '../db/db.module';
 import { EligibilityService } from '../eligibility/eligibility.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { WorkflowService } from '../workflow/workflow.service';
 import type { Consent, PendingConsentRequest } from './consents.types';
 
 function iso(d: any) {
@@ -15,7 +17,32 @@ export class ConsentsService {
     @Inject(PG_POOL) private readonly pool: Pool,
     private readonly eligibility: EligibilityService,
     private readonly notifications: NotificationsService,
+    private readonly workflow: WorkflowService,
+    private readonly connectors: ConnectorsService,
   ) {}
+
+  /**
+   * A step can be sitting 'blocked'/'consent_revoked' with no matching
+   * pending_consent_requests row — e.g. it blocked before this auto-create logic
+   * existed, or the process restarted mid-call. Rather than requiring someone to
+   * notice and manually backfill it, every read of pending requests reconciles
+   * first: any blocked-on-consent step missing its request gets one created.
+   */
+  private async reconcilePendingRequests(citizenMasterId?: string): Promise<void> {
+    const { rows } = citizenMasterId
+      ? await this.pool.query(
+          `SELECT DISTINCT t.department, a.citizen_master_id FROM timeline_steps t
+           JOIN applications a ON a.id = t.application_id
+           WHERE t.status = 'blocked' AND t.blocked_reason_code = 'consent_revoked' AND a.citizen_master_id = $1`,
+          [citizenMasterId],
+        )
+      : await this.pool.query(
+          `SELECT DISTINCT t.department, a.citizen_master_id FROM timeline_steps t
+           JOIN applications a ON a.id = t.application_id
+           WHERE t.status = 'blocked' AND t.blocked_reason_code = 'consent_revoked' AND a.citizen_master_id IS NOT NULL`,
+        );
+    await Promise.all(rows.map((r) => this.connectors.ensureConsentRequest(r.department, r.citizen_master_id)));
+  }
 
   async listConsents(citizenMasterId?: string): Promise<Consent[]> {
     const { rows } = citizenMasterId
@@ -34,6 +61,7 @@ export class ConsentsService {
   }
 
   async listPendingRequests(citizenMasterId?: string): Promise<PendingConsentRequest[]> {
+    await this.reconcilePendingRequests(citizenMasterId);
     const { rows } = citizenMasterId
       ? await this.pool.query('SELECT * FROM pending_consent_requests WHERE citizen_master_id = $1 ORDER BY requested_on DESC', [citizenMasterId])
       : await this.pool.query('SELECT * FROM pending_consent_requests ORDER BY requested_on DESC');
@@ -101,6 +129,23 @@ export class ConsentsService {
       `Consent granted — ${request.department}`,
       `${request.department} can now access ${(request.data_requested as string[]).join(', ')} for ${request.purpose}.`,
     );
+
+    // Grant, don't just log it — any application of this citizen's stuck on this
+    // department for exactly this reason resumes on its own, so "grant consent" is
+    // actually the unblock action the timeline's note promises, not a dead end that
+    // still needs an officer to notice and retry it manually.
+    if (request.citizen_master_id) {
+      const { rows: blockedApps } = await this.pool.query(
+        `SELECT DISTINCT t.application_id FROM timeline_steps t
+         JOIN applications a ON a.id = t.application_id
+         WHERE t.department = $1 AND t.status = 'blocked' AND t.blocked_reason_code = 'consent_revoked'
+           AND a.citizen_master_id = $2`,
+        [request.department, request.citizen_master_id],
+      );
+      for (const row of blockedApps) {
+        void this.workflow.retryBlockedStep(row.application_id);
+      }
+    }
 
     const { rows: created } = await this.pool.query('SELECT * FROM consents WHERE id = $1', [newConsentId]);
     const c = created[0];

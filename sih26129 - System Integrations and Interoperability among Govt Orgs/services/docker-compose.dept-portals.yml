@@ -1,0 +1,104 @@
+name: onedesk-dept-portals
+
+# Deliberately a separate compose file, not merged into docker-compose.yml — these
+# are meant to read as independently-owned systems (LIVE_DEPARTMENT_PORTALS_PLAN.md
+# §7). Joins the main stack's network by name so core-api can reach each portal and
+# each portal can call core-api's /interop/dept-callback webhook.
+networks:
+  default:
+    name: onedesk_default
+    external: true
+
+services:
+  business-registry-mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: bizreg-root
+      MYSQL_DATABASE: business_registry_portal
+      MYSQL_USER: bizreg
+      MYSQL_PASSWORD: bizreg
+    volumes:
+      - business-registry-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "bizreg", "-pbizreg"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  business-registry-portal:
+    build: ./live-departments/business-registry-portal
+    environment:
+      PORT: 4301
+      FRONTEND_PORT: 5301
+      DATABASE_URL: mysql://bizreg:bizreg@business-registry-mysql:3306/business_registry_portal
+      ONEDESK_CALLBACK_URL: http://core-api:3000/interop/dept-callback/business-registry
+      CALLBACK_SECRET: business-registry-portal-dev-secret
+      JWT_SECRET: business-registry-portal-jwt-dev-secret
+    ports:
+      - "4301:4301" # SOAP API — direct, dev convenience
+      - "5301:5301" # officer UI
+    depends_on:
+      business-registry-mysql:
+        condition: service_healthy
+
+  license-authority-mongo:
+    image: mongo:7
+    volumes:
+      - license-authority-mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  license-authority-portal:
+    build: ./live-departments/license-authority-portal
+    environment:
+      PORT: 4302
+      FRONTEND_PORT: 5302
+      MONGO_URL: mongodb://license-authority-mongo:27017
+      MONGO_DB: license_authority_portal
+      ONEDESK_CALLBACK_URL: http://core-api:3000/interop/dept-callback/license-authority
+      CALLBACK_SECRET: license-authority-portal-dev-secret
+      JWT_SECRET: license-authority-portal-jwt-dev-secret
+    ports:
+      - "4302:4302" # GraphQL API — direct, dev convenience
+      - "5302:5302" # officer UI
+    depends_on:
+      license-authority-mongo:
+        condition: service_healthy
+
+  revenue-postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: revenue
+      POSTGRES_PASSWORD: revenue
+      POSTGRES_DB: revenue_portal
+    volumes:
+      - revenue-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U revenue"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  revenue-portal:
+    build: ./live-departments/revenue-portal
+    environment:
+      PORT: 4303
+      FRONTEND_PORT: 5303
+      DATABASE_URL: postgres://revenue:revenue@revenue-postgres:5432/revenue_portal
+      ONEDESK_CALLBACK_URL: http://core-api:3000/interop/dept-callback/revenue
+      CALLBACK_SECRET: revenue-portal-dev-secret
+      JWT_SECRET: revenue-portal-jwt-dev-secret
+    ports:
+      - "4303:4303" # REST API — direct, dev convenience (no gateway in front of these)
+      - "5303:5303" # officer UI
+    depends_on:
+      revenue-postgres:
+        condition: service_healthy
+
+volumes:
+  business-registry-mysql-data:
+  license-authority-mongo-data:
+  revenue-postgres-data:

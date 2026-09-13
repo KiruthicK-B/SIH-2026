@@ -1,4 +1,4 @@
-import { Activity, CheckCircle2, Clock, Percent, Workflow, XCircle } from 'lucide-react'
+import { Activity, CheckCircle2, Clock, Database, Network, Percent, ShieldCheck, Workflow, XCircle } from 'lucide-react'
 import { motion, type Variants } from 'motion/react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -7,9 +7,11 @@ import { RingCenter } from '@/components/charts/ring-center'
 import { RingChart } from '@/components/charts/ring-chart'
 import Loader from '@/components/kokonutui/loader'
 import { DataFlowDiagram } from '@/components/operations/DataFlowDiagram'
+import { ModernizationTab } from '@/components/platform/ModernizationTab'
 import { StatCard } from '@/components/shared/StatCard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { useApplications } from '@/context/ApplicationsContext'
+import { defaultProtocolStyle, protocolStyle } from '@/data/dataMapping'
 import type { IntegrationEvent } from '@/data/integrations'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
@@ -28,22 +30,20 @@ interface TrafficSummary {
   avgResponseMs: number
 }
 
-// Same palette as DataMappingTab's protocolStyle — one color vocabulary for
-// "protocol" across the whole admin console.
-const PROTOCOL_COLOR: Record<string, string> = {
-  OAuth: '#234478',
-  SOAP: '#163f8a',
-  REST: '#16803c',
-  DB: '#6a3fc4',
-  GraphQL: '#b25e09',
-}
-
 const statCardVariants: Variants = {
   hidden: { opacity: 0, y: 10 },
   visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.05, duration: 0.35, ease: [0.4, 0, 0.2, 1] } }),
 }
 
-export function OverviewTab() {
+interface OverviewTabProps {
+  /** Jumps the parent Tabs to another top-level section — wired to the quick-link
+   * tiles below so Overview actually orients someone landing on /platform instead
+   * of just being the first of five equally-weighted tabs. */
+  onNavigate?: (tab: string) => void
+  isAdminOnly?: boolean
+}
+
+export function OverviewTab({ onNavigate, isAdminOnly }: OverviewTabProps) {
   const { t } = useTranslation()
   const { applications } = useApplications()
   const [connectors, setConnectors] = useState<ConnectorRegistryRow[]>([])
@@ -70,7 +70,7 @@ export function OverviewTab() {
     label: p,
     value: connectors.filter((c) => c.protocol === p).length,
     maxValue: connectors.length,
-    color: PROTOCOL_COLOR[p] ?? '#6b7280',
+    color: (protocolStyle[p] ?? defaultProtocolStyle).stroke,
   }))
 
   if (loading) {
@@ -105,6 +105,23 @@ export function OverviewTab() {
           </div>
         )}
       </div>
+
+      {onNavigate && (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {isAdminOnly && (
+            <QuickLinkTile
+              icon={Network}
+              label={t('governmentPlatform.tabInteroperability')}
+              onClick={() => onNavigate('interoperability')}
+            />
+          )}
+          <QuickLinkTile icon={ShieldCheck} label={t('governmentPlatform.tabDataConsent')} onClick={() => onNavigate('dataConsent')} />
+          <QuickLinkTile icon={Workflow} label={t('governmentPlatform.tabOperations')} onClick={() => onNavigate('operations')} />
+          {isAdminOnly && (
+            <QuickLinkTile icon={Database} label={t('governmentPlatform.tabRegistry')} onClick={() => onNavigate('registry')} />
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {statCards.map((s, i) => (
@@ -221,6 +238,26 @@ export function OverviewTab() {
           <DataFlowDiagram />
         </CardContent>
       </Card>
+
+      <div>
+        <h3 className="mb-3 text-sm font-semibold text-gray-900">{t('governmentPlatform.tabModernizationHeading')}</h3>
+        <ModernizationTab />
+      </div>
     </div>
+  )
+}
+
+function QuickLinkTile({ icon: Icon, label, onClick }: { icon: typeof Network; label: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex items-center gap-2.5 rounded-md border border-gray-200 bg-white px-3.5 py-3 text-left transition-colors hover:border-brand-300 hover:bg-brand-50/40"
+    >
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-gray-100 text-gray-500">
+        <Icon className="h-4 w-4" />
+      </span>
+      <span className="text-sm font-medium text-gray-800">{label}</span>
+    </button>
   )
 }

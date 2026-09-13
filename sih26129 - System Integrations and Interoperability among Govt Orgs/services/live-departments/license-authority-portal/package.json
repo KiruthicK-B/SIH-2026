@@ -1,0 +1,20 @@
+{
+  "name": "license-authority-portal",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Independently-run License Authority system — GraphQL API, own MongoDB database, own officer login. See LIVE_DEPARTMENT_PORTALS_PLAN.md.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
+    "graphql": "^16.9.0",
+    "graphql-yoga": "^5.10.3",
+    "jsonwebtoken": "^9.0.2",
+    "mammoth": "^1.12.3",
+    "mongodb": "^6.9.0"
+  }
+}

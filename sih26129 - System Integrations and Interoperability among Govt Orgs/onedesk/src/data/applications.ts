@@ -4,7 +4,7 @@
 
 export type ApplicationStatus = 'In Progress' | 'Under Review' | 'Approved' | 'Completed' | 'Rejected' | 'Revalidation Required'
 
-export type TimelineStepStatus = 'done' | 'active' | 'blocked' | 'pending'
+export type TimelineStepStatus = 'done' | 'active' | 'blocked' | 'pending' | 'awaiting_department' | 'rejected'
 
 export interface TimelineStep {
   label: string
@@ -13,6 +13,7 @@ export interface TimelineStep {
   date?: string
   systemType?: string
   note?: string
+  blockedReasonCode?: string
 }
 
 export interface Application {

@@ -1,6 +1,6 @@
 import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import type { Pool } from 'pg';
-import { ConnectorsService } from '../connectors/connectors.service';
+import { ConnectorsService, LIVE_DEPARTMENTS } from '../connectors/connectors.service';
 import { PG_POOL } from '../db/db.module';
 import { DocumentsService } from '../documents/documents.service';
 import { ApplicationEventsService } from '../events/application-events.service';
@@ -256,6 +256,25 @@ export class WorkflowService {
         return;
       }
 
+      if (LIVE_DEPARTMENTS.has(current.department)) {
+        // Accepted for review, not reviewed — the actual decision arrives later via
+        // an officer acting in that department's own portal and calling back through
+        // /interop/dept-callback (handleDeptCallback below). Stop here; resuming the
+        // chain is that callback's job, not this loop's.
+        await this.pool.query(
+          `UPDATE timeline_steps SET status = 'awaiting_department', note = $2 WHERE id = $1`,
+          [current.id, `Submitted to ${current.department} — awaiting officer review.`],
+        );
+        await this.notifications.notify(
+          citizenMasterId,
+          'application',
+          `Application ${applicationId}`,
+          `${current.label} submitted to ${current.department} — awaiting review.`,
+        );
+        await this.publish(applicationId);
+        return;
+      }
+
       await this.pool.query(`UPDATE timeline_steps SET status = 'done', step_date = $2 WHERE id = $1`, [current.id, today]);
       await this.pool.query(
         `INSERT INTO audit_log (id, actor, department, action, resource, result, purpose) VALUES ($1, 'System', $2, 'VERIFY', $3, 'Success', 'Automated workflow step')`,
@@ -292,6 +311,76 @@ export class WorkflowService {
       await this.publish(applicationId);
       // loop continues to the next step (Identity -> Business Registry -> Revenue -> ...
       // stops automatically once `next` lands on Municipal Corporation, per the check above)
+    }
+  }
+
+  /**
+   * Resumes a chain paused on a live department portal (see runAutoAdvance's
+   * LIVE_DEPARTMENTS branch) once that department's officer has actually decided —
+   * called from InteropController after the callback's HMAC signature checks out.
+   * Mirrors approveMunicipalReview's advance-then-check-allDone shape, since that's
+   * the same "one step finished, is the application done or does it keep going"
+   * logic, just triggered by an external system instead of an in-app officer click.
+   */
+  async handleDeptCallback(
+    department: string,
+    applicationId: string,
+    decision: 'APPROVED' | 'REJECTED',
+    remark: string,
+    decidedBy: string,
+  ): Promise<void> {
+    const { rows: appRows } = await this.pool.query('SELECT citizen_master_id, service FROM applications WHERE id = $1', [applicationId]);
+    if (appRows.length === 0) throw new NotFoundException(`application ${applicationId} not found`);
+    const citizenMasterId: string | null = appRows[0].citizen_master_id ?? null;
+    const serviceName: string = appRows[0].service;
+
+    const { rows: stepRows } = await this.pool.query(
+      'SELECT * FROM timeline_steps WHERE application_id = $1 ORDER BY step_order',
+      [applicationId],
+    );
+    const current = stepRows.find((s) => s.department === department && s.status === 'awaiting_department');
+    if (!current) throw new NotFoundException(`no step awaiting ${department} for application ${applicationId}`);
+
+    const today = todayISO();
+
+    if (decision === 'REJECTED') {
+      await this.pool.query(`UPDATE timeline_steps SET status = 'rejected', step_date = $2, note = $3 WHERE id = $1`, [current.id, today, remark]);
+      await this.pool.query(
+        `INSERT INTO audit_log (id, actor, department, action, resource, result, purpose) VALUES ($1, $2, $3, 'REJECT', $4, 'Success', $5)`,
+        [`aud-${Date.now()}`, decidedBy, department, `${applicationId}: ${current.label}`, remark],
+      );
+      await this.pool.query(`UPDATE applications SET status = 'Rejected', last_updated = $2 WHERE id = $1`, [applicationId, today]);
+      await this.notifications.notify(citizenMasterId, 'application', `Application ${applicationId}`, `${department} rejected this application: ${remark}`);
+      await this.publish(applicationId);
+      return;
+    }
+
+    await this.pool.query(`UPDATE timeline_steps SET status = 'done', step_date = $2, note = $3 WHERE id = $1`, [current.id, today, remark]);
+    await this.pool.query(
+      `INSERT INTO audit_log (id, actor, department, action, resource, result, purpose) VALUES ($1, $2, $3, 'APPROVE', $4, 'Success', $5)`,
+      [`aud-${Date.now()}`, decidedBy, department, `${applicationId}: ${current.label}`, remark],
+    );
+    await this.notifications.notify(citizenMasterId, 'application', `Application ${applicationId}`, `${current.label} approved by ${department}: ${remark}`);
+
+    const currentIdx = stepRows.findIndex((s) => s.id === current.id);
+    const next = stepRows[currentIdx + 1];
+    if (next) {
+      await this.pool.query(`UPDATE timeline_steps SET status = 'active' WHERE id = $1`, [next.id]);
+    }
+
+    const { rows: freshSteps } = await this.pool.query('SELECT status FROM timeline_steps WHERE application_id = $1', [applicationId]);
+    const allDone = freshSteps.every((s) => s.status === 'done');
+    if (allDone) {
+      await this.pool.query(`UPDATE applications SET status = 'Completed', last_updated = $2 WHERE id = $1`, [applicationId, today]);
+      await this.notifications.notify(citizenMasterId, 'application', `Application ${applicationId}`, `${serviceName} application has been completed.`);
+      await this.documents.issueDocument(citizenMasterId, `${serviceName} Certificate`, department, applicationId);
+    } else {
+      await this.pool.query(`UPDATE applications SET last_updated = $2 WHERE id = $1`, [applicationId, today]);
+    }
+
+    await this.publish(applicationId);
+    if (next) {
+      await this.runAutoAdvance(applicationId);
     }
   }
 

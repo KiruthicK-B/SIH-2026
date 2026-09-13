@@ -46,6 +46,9 @@ export const NODE_POSITIONS: Record<string, { x: number; y: number }> = {
   'License Authority': { x: 26, y: 87 },
   'Identity Service': { x: 74, y: 87 },
   RTO: { x: 50, y: 90 },
+  'Business Registry Portal': { x: 38, y: 26 },
+  'License Authority Portal': { x: 62, y: 26 },
+  'Revenue Department Portal': { x: 50, y: 46 },
 }
 
 export const protocolStyle: Record<string, { stroke: string; dashed: boolean; label: string }> = {

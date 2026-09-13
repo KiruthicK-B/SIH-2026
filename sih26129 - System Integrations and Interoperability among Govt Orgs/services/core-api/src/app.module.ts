@@ -16,6 +16,7 @@ import { EventsModule } from './events/events.module';
 import { GrievancesModule } from './grievances/grievances.module';
 import { HealthController } from './health.controller';
 import { IdentityModule } from './identity/identity.module';
+import { InteropModule } from './interop/interop.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PlatformStatsModule } from './platform-stats/platform-stats.module';
 import { SchemaModule } from './schema/schema.module';
@@ -38,6 +39,7 @@ import { WorkflowModule } from './workflow/workflow.module';
     SchemaModule,
     DepartmentsModule,
     IdentityModule,
+    InteropModule,
     AuthModule,
     ServicesModule,
     SlaModule,

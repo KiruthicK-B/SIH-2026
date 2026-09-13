@@ -86,7 +86,9 @@ export default function Dashboard() {
                       'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 text-[10px] font-semibold',
                       step.status === 'done' && 'border-success-600 bg-success-600 text-white',
                       step.status === 'active' && 'border-brand-500 bg-brand-50 text-brand-600',
+                      step.status === 'awaiting_department' && 'border-consent-600 bg-consent-50 text-consent-600',
                       step.status === 'blocked' && 'border-warning-600 bg-warning-50 text-warning-600',
+                      step.status === 'rejected' && 'border-danger-600 bg-danger-50 text-danger-600',
                       step.status === 'pending' && 'border-gray-200 bg-white text-gray-300',
                     )}
                     title={step.label}
